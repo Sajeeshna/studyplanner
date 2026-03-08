@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyPlanner – Smart Study Companion</title>
+
+  <!-- SEO & Social -->
+  <meta name="description" content="StudyPlanner — AI chatbot, exam timetable, flashcards, Pomodoro timer, attendance tracker & more.">
+  <meta name="theme-color" content="#004d40">
+  <meta property="og:title" content="StudyPlanner – Smart Study Companion">
+  <meta property="og:description" content="AI chatbot, exam timetable, flashcards, Pomodoro timer, attendance tracker & more.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="StudyPlanner – Smart Study Companion">
+
+  <!-- PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="StudyPlanner">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════════
+       TOAST CONTAINER
+       ══════════════════════════════════════════════ -->
+  <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- ══════════════════════════════════════════════
+       LOADING SCREEN
+       Managed exclusively by AppState.switchScreen()
+       ══════════════════════════════════════════════ -->
+  <div id="loading-screen" role="status" aria-label="Application loading">
+    <div class="loader-logo" aria-hidden="true">Study<span>Planner</span></div>
+    <div class="loader-bar-container" aria-hidden="true">
+      <div class="loader-bar"></div>
+    </div>
+    <div class="loader-text" aria-hidden="true">Preparing your workspace…</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       LOGIN SCREEN
+       Hidden by default via .hidden — shown by AppState
+       ══════════════════════════════════════════════ -->
+  <div id="login-screen" class="hidden" role="main" aria-label="Sign in to StudyPlanner">
+    <div class="login-container">
+      <span class="login-logo" aria-hidden="true">📚</span>
+      <h2>StudyPlanner</h2>
+      <p class="login-subtitle">Your smart study companion ✨</p>
+
+      <!-- Google OAuth -->
+      <button class="btn-google" onclick="loginWithGoogle()" type="button">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+          <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+          <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+          <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="login-divider" role="separator"><span>or sign in with email</span></div>
+
+      <!-- Name (sign-up only) -->
+      <input
+        type="text"
+        id="auth-name"
+        placeholder="Your Name"
+        autocomplete="given-name"
+        style="display:none"
+        aria-label="Your Name"
+      >
+
+      <input
+        type="email"
+        id="auth-email"
+        placeholder="Email Address"
+        autocomplete="email"
+        required
+        aria-label="Email Address"
+        aria-required="true"
+      >
+
+      <input
+        type="password"
+        id="auth-password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+        aria-label="Password"
+        aria-required="true"
+        onkeydown="if(event.key==='Enter') handleAuth()"
+      >
+
+      <button class="btn-login" id="auth-btn" onclick="handleAuth()" type="button">Sign In</button>
+
+      <div class="login-error" id="auth-error" role="alert" aria-live="assertive"></div>
+
+      <div class="login-toggle">
+        <span id="toggle-text">Don't have an account?</span>
+        <a onclick="toggleAuthMode()" role="button" tabindex="0" onkeydown="if(event.key==='Enter') toggleAuthMode()">
+          &nbsp;<span id="toggle-link">Sign Up</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       MAIN APPLICATION  (hidden until authenticated)
+       ══════════════════════════════════════════════ -->
+  <div id="app-container" aria-hidden="true">
+
+    <!-- ── HEADER ─────────────────────────────────── -->
+    <header role="banner">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="hamburger" onclick="toggleMobileSidebar()"
+          aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
+        <h1 aria-label="StudyPlanner">Study<span>Planner</span></h1>
+      </div>
+      <div class="header-right">
+        <span id="user-display-name" aria-live="polite">Student</span>
+        <div class="avatar" id="avatar" aria-hidden="true">S</div>
+        <button class="btn-icon" onclick="toggleDarkMode()" id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+        <button class="btn-logout" onclick="logoutUser()" aria-label="Sign out">Logout</button>
+      </div>
+    </header>
+
+    <div class="app-body">
+
+      <!-- ── STUDENT SIDEBAR ────────────────────────── -->
+      <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+        <div class="sidebar-section-label">Main</div>
+        <div class="sidebar-item active" data-section="dashboard"
+          onclick="navigateTo('dashboard')" role="link" tabindex="0" aria-current="page"
+          onkeydown="if(event.key==='Enter') navigateTo('dashboard')">
+          <span class="si-icon" aria-hidden="true">🏠</span> Dashboard
+        </div>
+
+        <div class="sidebar-section-label">Study Tools</div>
+        <div class="sidebar-item" data-section="timetable"
+          onclick="navigateTo('timetable')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('timetable')">
+          <span class="si-icon" aria-hidden="true">📅</span> Exam Timetable
+        </div>
+        <div class="sidebar-item" data-section="reminders"
+          onclick="navigateTo('reminders')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('reminders')">
+          <span class="si-icon" aria-hidden="true">🔔</span> Reminders
+        </div>
+        <div class="sidebar-item" data-section="notes"
+          onclick="navigateTo('notes')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('notes')">
+          <span class="si-icon" aria-hidden="true">📝</span> Digital Notes
+        </div>
+        <div class="sidebar-item" data-section="semnotes"
+          onclick="navigateTo('semnotes')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('semnotes')">
+          <span class="si-icon" aria-hidden="true">📚</span> Semester Notes
+        </div>
+        <div class="sidebar-item" data-section="pomodoro"
+          onclick="navigateTo('pomodoro')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('pomodoro')">
+          <span class="si-icon" aria-hidden="true">⏱️</span> Pomodoro Timer
+        </div>
+        <div class="sidebar-item" data-section="tasks"
+          onclick="navigateTo('tasks')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('tasks')">
+          <span class="si-icon" aria-hidden="true">✅</span> Task Tracker
+        </div>
+        <div class="sidebar-item" data-section="flashcards"
+          onclick="navigateTo('flashcards')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('flashcards')">
+          <span class="si-icon" aria-hidden="true">🃏</span> Flashcards
+        </div>
+
+        <div class="sidebar-section-label">Tracking</div>
+        <div class="sidebar-item" data-section="progress"
+          onclick="navigateTo('progress')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('progress')">
+          <span class="si-icon" aria-hidden="true">📊</span> CGPA &amp; Progress
+        </div>
+        <div class="sidebar-item" data-section="attendance"
+          onclick="navigateTo('attendance')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('attendance')">
+          <span class="si-icon" aria-hidden="true">📋</span> Attendance
+        </div>
+        <div class="sidebar-item" data-section="profile"
+          onclick="navigateTo('profile')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') navigateTo('profile')">
+          <span class="si-icon" aria-hidden="true">👤</span> My Profile
+        </div>
+
+        <div class="sidebar-section-label">More</div>
+      </nav>
+
+      <!-- Mobile sidebar backdrop -->
+      <div class="sidebar-overlay" id="sidebar-overlay"
+        onclick="toggleMobileSidebar()" aria-hidden="true"></div>
+
+      <!-- ── ADMIN SIDEBAR ──────────────────────────── -->
+      <nav class="sidebar" id="admin-sidebar" style="display:none;" aria-label="Admin navigation">
+        <div class="admin-sidebar-badge">👑 Admin Panel</div>
+        <div class="sidebar-section-label">Admin</div>
+        <div class="admin-sidebar-item active" data-section="admin"
+          onclick="adminNavigateTo('admin')" role="link" tabindex="0" aria-current="page"
+          onkeydown="if(event.key==='Enter') adminNavigateTo('admin')">
+          <span class="si-icon" aria-hidden="true">🏠</span> Dashboard
+        </div>
+        <div class="admin-sidebar-item" data-section="admin-timetable"
+          onclick="adminNavigateTo('admin-timetable')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-timetable')">
+          <span class="si-icon" aria-hidden="true">📅</span> Exam Timetable
+        </div>
+        <div class="admin-sidebar-item" data-section="admin-pdfs"
+          onclick="adminNavigateTo('admin-pdfs')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-pdfs')">
+          <span class="si-icon" aria-hidden="true">📄</span> Manage PDFs
+        </div>
+        <div class="admin-sidebar-item" data-section="admin-users"
+          onclick="adminNavigateTo('admin-users')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-users')">
+          <span class="si-icon" aria-hidden="true">👥</span> Users
+        </div>
+        <div class="admin-sidebar-item" data-section="admin-attendance"
+          onclick="adminNavigateTo('admin-attendance')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-attendance')">
+          <span class="si-icon" aria-hidden="true">📋</span> Attendance
+        </div>
+        <div class="admin-sidebar-item" data-section="admin-reports"
+          onclick="adminNavigateTo('admin-reports')" role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-reports')">
+          <span class="si-icon" aria-hidden="true">📊</span> Student Reports
+        </div>
+      </nav>
+
+      <!-- ── MAIN CONTENT ───────────────────────────── -->
+      <main class="main-content" role="main">
+
+        <!-- ═══ DASHBOARD ═══ -->
+        <section class="content-section active" id="section-dashboard" aria-label="Dashboard">
+          <div class="dashboard-welcome">
+            <h2>📚 Welcome back to StudyPlanner!</h2>
+            <p id="hero-date"></p>
+          </div>
+
+          <div class="dashboard-grid" role="list" aria-label="Key statistics">
+            <div class="stat-card" role="listitem">
+              <div class="sc-icon orange" aria-hidden="true"><span class="streak-flames">🔥</span></div>
+              <div class="sc-info">
+                <h3 id="dash-streak" aria-label="Day streak">0</h3>
+                <p>Day Streak</p>
+              </div>
+            </div>
+            <div class="stat-card" role="listitem">
+              <div class="sc-icon green" aria-hidden="true">✅</div>
+              <div class="sc-info">
+                <h3 id="dash-tasks" aria-label="Tasks completed today">0</h3>
+                <p>Tasks Today</p>
+              </div>
+            </div>
+            <div class="stat-card" role="listitem">
+              <div class="sc-icon red" aria-hidden="true">🔔</div>
+              <div class="sc-info">
+                <h3 id="dash-reminders" aria-label="Upcoming reminders">0</h3>
+                <p>Upcoming</p>
+              </div>
+            </div>
+            <div class="stat-card" role="listitem">
+              <div class="sc-icon purple" aria-hidden="true">📊</div>
+              <div class="sc-info">
+                <h3 id="dash-cgpa" aria-label="Current CGPA">—</h3>
+                <p>Current CGPA</p>
+              </div>
+            </div>
+            <div class="stat-card" role="listitem">
+              <div class="sc-icon blue" aria-hidden="true">🃏</div>
+              <div class="sc-info">
+                <h3 id="dash-flashcards" aria-label="Total flashcards">0</h3>
+                <p>Flashcards</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-panel">
+            <h4>📖 Today's Study Time</h4>
+            <div id="study-time-log" aria-live="polite"></div>
+          </div>
+
+          <div class="shortcuts-bar" aria-label="Keyboard shortcuts reference">
+            <span><kbd>Alt</kbd>+<kbd>D</kbd> Dashboard</span>
+            <span><kbd>Alt</kbd>+<kbd>T</kbd> Timetable</span>
+            <span><kbd>Alt</kbd>+<kbd>R</kbd> Reminders</span>
+            <span><kbd>Alt</kbd>+<kbd>N</kbd> Notes</span>
+            <span><kbd>Alt</kbd>+<kbd>P</kbd> Pomodoro</span>
+            <span><kbd>Alt</kbd>+<kbd>K</kbd> Tasks</span>
+            <span><kbd>Alt</kbd>+<kbd>C</kbd> Chatbot</span>
+          </div>
+        </section>
+
+        <!-- ═══ EXAM TIMETABLE ═══ -->
+        <section class="content-section" id="section-timetable" aria-label="Exam Timetable">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📅</div>
+            <h2>Exam Timetable<small>View your exam schedule</small></h2>
+          </div>
+          <div class="card-panel">
+            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">
+              📋 Timetable is managed by admin. Check back for updates!
+            </p>
+            <div style="overflow-x:auto;">
+              <table aria-label="Exam schedule">
+                <thead>
+                  <tr>
+                    <th scope="col">Day</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Subject</th>
+                    <th scope="col">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="exam-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ REMINDERS ═══ -->
+        <section class="content-section" id="section-reminders" aria-label="Reminders">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">🔔</div>
+            <h2>Reminders<small>Track deadlines &amp; exams</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="inline-form" role="form" aria-label="Add a reminder">
+              <input type="text" id="reminder-title" placeholder="Reminder Title" aria-label="Reminder title">
+              <input type="date" id="reminder-date" aria-label="Reminder date">
+              <select id="reminder-recurring" aria-label="Repeat frequency">
+                <option value="none">No Repeat</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <button class="btn-action" onclick="addReminder()" type="button">Set Reminder</button>
+            </div>
+            <ul class="item-list" id="reminder-list" aria-label="Reminders" aria-live="polite"></ul>
+          </div>
+        </section>
+
+        <!-- ═══ DIGITAL NOTES ═══ -->
+        <section class="content-section" id="section-notes" aria-label="Digital Notes">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📝</div>
+            <h2>Digital Notes<small>Quick notes with links &amp; tags</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="notes-search">
+              <input type="search" id="note-search-input" placeholder="🔍 Search notes…"
+                oninput="searchNotes()" aria-label="Search notes">
+            </div>
+            <div class="inline-form" role="form" aria-label="Add a note">
+              <input type="text" id="note-title"   placeholder="Note Title"                              aria-label="Note title">
+              <textarea          id="note-content" placeholder="Write your note here…" rows="3"         aria-label="Note content"></textarea>
+              <input type="url"  id="note-link"    placeholder="Paste related URL (optional)"           aria-label="Related link">
+              <input type="text" id="note-tags"    placeholder="Tags (comma-separated, e.g. math, exam)" aria-label="Tags">
+              <button class="btn-action" onclick="addNote()" type="button">Save Note</button>
+            </div>
+            <div id="notes-container" style="margin-top:12px;" aria-live="polite" aria-label="Notes"></div>
+          </div>
+        </section>
+
+        <!-- ═══ SEMESTER NOTES ═══ -->
+        <section class="content-section" id="section-semnotes" aria-label="Semester Notes">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📚</div>
+            <h2>Semester Notes<small>Organised by semester</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="inline-form">
+              <label for="sem-select" style="font-weight:600;font-size:0.9rem;">Select Semester:</label>
+              <select id="sem-select" onchange="loadAdminNotes()" aria-label="Select semester">
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+                <option value="3">Semester 3</option>
+                <option value="4">Semester 4</option>
+                <option value="5">Semester 5</option>
+                <option value="6">Semester 6</option>
+              </select>
+            </div>
+            <div id="admin-notes-container" style="margin-top:15px;" aria-live="polite"></div>
+            <hr style="margin:15px 0;border:0;border-top:1px dashed var(--glass-border);" aria-hidden="true">
+            <h4>📎 PDF Notes (uploaded by Admin):</h4>
+            <div id="pdf-files-container" style="margin-top:10px;" aria-live="polite"></div>
+            <hr style="margin:15px 0;border:0;border-top:1px dashed var(--glass-border);" aria-hidden="true">
+            <h4>✏️ Add Your Own Notes:</h4>
+            <div class="inline-form" role="form" aria-label="Add personal semester note">
+              <select id="subject-select" aria-label="Select subject"></select>
+              <textarea id="sem-note-content" placeholder="Write notes for this subject…" rows="2" aria-label="Note content"></textarea>
+              <button class="btn-action" onclick="addUserNote()" type="button">Save My Note</button>
+            </div>
+            <div id="user-sem-notes" style="margin-top:10px;" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <!-- ═══ POMODORO TIMER ═══ -->
+        <section class="content-section" id="section-pomodoro" aria-label="Pomodoro Timer">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">⏱️</div>
+            <h2>Pomodoro Timer<small>Focus with 25/5 technique</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="pomodoro-display">
+              <div class="pomo-ring-container" aria-hidden="true">
+                <svg viewBox="0 0 220 220">
+                  <defs>
+                    <linearGradient id="pomoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%"   style="stop-color:#00695c"/>
+                      <stop offset="100%" style="stop-color:#4db6ac"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="110" cy="110" r="100" class="pomo-ring-bg"/>
+                  <circle cx="110" cy="110" r="100" class="pomo-ring-progress" id="pomo-ring"/>
+                </svg>
+                <div class="pomo-ring-center">
+                  <div class="pomodoro-label" id="pomo-label">STUDY TIME</div>
+                  <div class="pomodoro-time"  id="pomo-time">25:00</div>
+                </div>
+              </div>
+
+              <div class="pomo-session-count" id="pomo-sessions" aria-live="polite">Sessions: 0</div>
+
+              <div class="pomodoro-btns" role="group" aria-label="Timer controls">
+                <button class="btn-start" onclick="startPomodoro()" type="button">▶ Start</button>
+                <button class="btn-pause" onclick="pausePomodoro()" type="button">⏸ Pause</button>
+                <button class="btn-reset" onclick="resetPomodoro()" type="button">↻ Reset</button>
+              </div>
+
+              <div class="pomo-mode-btns" role="group" aria-label="Timer presets">
+                <button class="btn-action"        style="padding:8px 16px;font-size:0.82rem;" onclick="setPomoMode('study')"     type="button">25 min Study</button>
+                <button class="btn-action accent"  style="padding:8px 16px;font-size:0.82rem;" onclick="setPomoMode('break')"     type="button">5 min Break</button>
+                <button class="btn-action purple"  style="padding:8px 16px;font-size:0.82rem;" onclick="setPomoMode('longbreak')" type="button">15 min Long Break</button>
+              </div>
+
+              <div class="pomo-subject-select">
+                <label for="pomo-subject">Tracking for:</label>
+                <select id="pomo-subject" aria-label="Subject to log time for">
+                  <option value="">General</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ TASK TRACKER ═══ -->
+        <section class="content-section" id="section-tasks" aria-label="Task Tracker">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">✅</div>
+            <h2>Task Tracker<small>Daily study checklist</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="task-progress" aria-live="polite">
+              <div class="task-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="task-progress-fill" id="task-fill" style="width:0%"></div>
+              </div>
+              <div class="task-progress-text" id="task-progress-text">0 / 0 completed</div>
+            </div>
+            <div class="inline-form row">
+              <input type="text" id="task-input" placeholder="Add a study task…" style="flex:1;"
+                aria-label="New task" onkeydown="if(event.key==='Enter') addTask()">
+              <button class="btn-action" onclick="addTask()" type="button">+ Add</button>
+            </div>
+            <div id="tasks-container" style="margin-top:10px;" aria-live="polite" aria-label="Task list"></div>
+          </div>
+        </section>
+
+        <!-- ═══ FLASHCARDS ═══ -->
+        <section class="content-section" id="section-flashcards" aria-label="Flashcards">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">🃏</div>
+            <h2>Flashcards<small>Create &amp; review flashcards</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="inline-form" role="form" aria-label="Create flashcard">
+              <input type="text" id="fc-front"   placeholder="Front side (question)" aria-label="Question">
+              <input type="text" id="fc-back"    placeholder="Back side (answer)"   aria-label="Answer">
+              <input type="text" id="fc-subject" placeholder="Subject (optional)"   aria-label="Subject">
+              <button class="btn-action" onclick="addFlashcard()" type="button">Create Flashcard</button>
+            </div>
+            <p style="font-size:0.82rem;color:var(--text-muted);margin-top:8px;">💡 Click a card to flip it!</p>
+          </div>
+          <div class="flashcard-deck" id="flashcard-deck" role="list" aria-label="Flashcard deck"></div>
+        </section>
+
+        <!-- ═══ PROGRESS & CGPA ═══ -->
+        <section class="content-section" id="section-progress" aria-label="CGPA and Progress">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📊</div>
+            <h2>Progress &amp; CGPA<small>Track your performance</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="inline-form" role="form" aria-label="Add semester result">
+              <input type="number" id="sem-no"    placeholder="Semester No (e.g., 1)" min="1" max="12" aria-label="Semester number">
+              <input type="number" id="sem-marks" placeholder="SGPA / Marks %"        step="0.01" min="0" max="100" aria-label="SGPA or marks">
+              <button class="btn-action" onclick="addProgress()" type="button">Add Semester</button>
+            </div>
+            <div class="chart-container">
+              <canvas id="progressChart" role="img" aria-label="Semester progress chart"></canvas>
+            </div>
+            <div style="overflow-x:auto;">
+              <table aria-label="Semester scores">
+                <thead>
+                  <tr>
+                    <th scope="col">Semester</th>
+                    <th scope="col">Score</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="progress-body"></tbody>
+              </table>
+            </div>
+            <div style="margin-top:12px;text-align:center;font-weight:700;color:var(--primary-main);font-size:1.1rem;" aria-live="polite">
+              Current CGPA: <span id="cgpa-display">0.00</span>
+            </div>
+          </div>
+          <div class="card-panel">
+            <h4>🎯 GPA Goal Tracker</h4>
+            <div class="inline-form row">
+              <input type="number" id="gpa-goal-input" placeholder="Target GPA (e.g., 8.5)" step="0.01" style="flex:1;" aria-label="Target GPA">
+              <button class="btn-action" onclick="saveGpaGoal()" type="button">Set Goal</button>
+            </div>
+            <div id="gpa-goal-display" style="margin-top:12px;" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <!-- ═══ ATTENDANCE (read-only calendar) ═══ -->
+        <section class="content-section" id="section-attendance" aria-label="Attendance">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📋</div>
+            <h2>Attendance<small>View your attendance records</small></h2>
+          </div>
+          <div class="card-panel">
+            <p class="att-readonly-notice">
+              📌 Attendance is recorded by your admin. This is a <strong>view-only</strong> calendar.
+            </p>
+            <div class="att-subject-row">
+              <label for="att-subject-filter" class="att-subject-label">Subject:</label>
+              <select id="att-subject-filter"
+                onchange="renderAttendanceCalendar(this.value)"
+                aria-label="Select subject to view attendance calendar">
+                <option value="">— Select Subject —</option>
+              </select>
+            </div>
+          </div>
+          <div id="attendance-grid" aria-live="polite" aria-label="Attendance calendar"></div>
+        </section>
+
+        <!-- ═══ PROFILE ═══ -->
+        <section class="content-section" id="section-profile" aria-label="My Profile">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">👤</div>
+            <h2>My Profile<small>Personal &amp; campus info</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="inline-form" role="form" aria-label="Profile form">
+              <input type="text" id="p-name"  placeholder="Full Name"         aria-label="Full name">
+              <input type="text" id="p-reg"   placeholder="Register Number"   aria-label="Register number">
+              <input type="tel"  id="p-phone" placeholder="Phone Number"      aria-label="Phone number">
+              <input type="text" id="p-adm"   placeholder="Admission Number"  aria-label="Admission number">
+              <input type="text" id="p-act"   placeholder="Campus Activities" aria-label="Campus activities">
+              <button class="btn-action" onclick="saveProfile()" type="button">Save Profile</button>
+            </div>
+            <div id="profile-display" style="margin-top:15px;display:none;" aria-live="polite">
+              <h4 style="font-size:0.95rem;margin-bottom:8px;">Saved Profile:</h4>
+              <p><strong>Name:</strong>         <span id="dp-name"></span></p>
+              <p><strong>Reg No:</strong>        <span id="dp-reg"></span></p>
+              <p><strong>Phone:</strong>         <span id="dp-phone"></span></p>
+              <p><strong>Admission No:</strong>  <span id="dp-adm"></span></p>
+              <p><strong>Activities:</strong>    <span id="dp-act"></span></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ ADMIN DASHBOARD ═══ -->
+        <section class="content-section" id="section-admin" aria-label="Admin Dashboard">
+          <div class="admin-welcome-banner">
+            <div>
+              <h2>👑 Admin Dashboard</h2>
+              <p>Manage timetable, PDFs and monitor users</p>
+            </div>
+          </div>
+          <div class="dashboard-grid" style="margin-top:20px;">
+            <div class="stat-card" onclick="adminNavigateTo('admin-timetable')"
+              style="cursor:pointer;" role="button" tabindex="0" aria-label="Manage exam timetable"
+              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-timetable')">
+              <div class="sc-icon blue" aria-hidden="true">📅</div>
+              <div class="sc-info"><h3>Timetable</h3><p>Manage exam schedule</p></div>
+            </div>
+            <div class="stat-card" onclick="adminNavigateTo('admin-pdfs')"
+              style="cursor:pointer;" role="button" tabindex="0" aria-label="Manage PDFs"
+              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-pdfs')">
+              <div class="sc-icon green" aria-hidden="true">📄</div>
+              <div class="sc-info"><h3>PDFs</h3><p>Upload semester notes</p></div>
+            </div>
+            <div class="stat-card" onclick="adminNavigateTo('admin-users')"
+              style="cursor:pointer;" role="button" tabindex="0" aria-label="View users"
+              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-users')">
+              <div class="sc-icon purple" aria-hidden="true">👥</div>
+              <div class="sc-info"><h3 id="admin-user-count">—</h3><p>Total Users</p></div>
+            </div>
+            <div class="stat-card" onclick="adminNavigateTo('admin-attendance')"
+              style="cursor:pointer;" role="button" tabindex="0" aria-label="Manage attendance"
+              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-attendance')">
+              <div class="sc-icon teal" aria-hidden="true">📋</div>
+              <div class="sc-info"><h3>Attendance</h3><p>Mark student attendance</p></div>
+            </div>
+            <div class="stat-card" onclick="adminNavigateTo('admin-reports')"
+              style="cursor:pointer;" role="button" tabindex="0" aria-label="View student reports"
+              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-reports')">
+              <div class="sc-icon orange" aria-hidden="true">📊</div>
+              <div class="sc-info"><h3>Reports</h3><p>Student performance</p></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ ADMIN TIMETABLE ═══ -->
+        <section class="content-section" id="section-admin-timetable" aria-label="Admin Timetable">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📅</div>
+            <h2>Exam Timetable<small>Add &amp; manage — visible to all students</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="inline-form" role="form" aria-label="Add exam entry">
+              <input type="text" id="admin-exam-day"     placeholder="Day (e.g., Monday)" aria-label="Day">
+              <input type="time" id="admin-exam-time"    aria-label="Time">
+              <input type="text" id="admin-exam-subject" placeholder="Subject Name"        aria-label="Subject">
+              <input type="date" id="admin-exam-date"    aria-label="Date">
+              <button class="btn-action" onclick="adminAddExam()" type="button">Add Exam</button>
+            </div>
+            <div style="overflow-x:auto;margin-top:16px;">
+              <table aria-label="Admin exam schedule">
+                <thead>
+                  <tr>
+                    <th scope="col">Day</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Subject</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-timetable-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ ADMIN PDFs ═══ -->
+        <section class="content-section" id="section-admin-pdfs" aria-label="Admin PDF Management">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📄</div>
+            <h2>Manage PDFs<small>Upload notes for students</small></h2>
+          </div>
+          <div class="card-panel">
+            <div class="inline-form" role="form" aria-label="PDF upload form">
+              <select id="admin-pdf-sem" aria-label="Select semester">
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+                <option value="3">Semester 3</option>
+                <option value="4">Semester 4</option>
+                <option value="5">Semester 5</option>
+                <option value="6">Semester 6</option>
+              </select>
+              <input type="text" id="admin-pdf-subject" placeholder="Subject Name" aria-label="Subject name">
+              <div class="upload-area" id="admin-upload-area"
+                ondragover="event.preventDefault();this.classList.add('dragging')"
+                ondragleave="this.classList.remove('dragging')"
+                ondrop="event.preventDefault();this.classList.remove('dragging');adminHandlePdfUpload(event.dataTransfer.files[0])">
+                <input type="file" id="admin-pdf-file-input" accept=".pdf,application/pdf"
+                  onchange="adminHandlePdfUpload(this.files[0])"
+                  aria-label="Select PDF file (max 15 MB)">
+                <div class="upload-icon" aria-hidden="true">📄</div>
+                <div class="upload-text">Drag &amp; drop PDF or <b>click to browse</b> (max 15 MB)</div>
+              </div>
+              <div class="upload-progress" id="admin-upload-progress"
+                role="progressbar" aria-label="Upload progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="upload-progress-bar" id="admin-upload-progress-bar"></div>
+              </div>
+            </div>
+            <h4 style="margin-top:20px;">📋 Uploaded PDFs:</h4>
+            <div id="admin-pdf-list" style="margin-top:10px;" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <!-- ═══ ADMIN USERS ═══ -->
+        <section class="content-section" id="section-admin-users" aria-label="Admin Users">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">👥</div>
+            <h2>Users<small>Registered students &amp; activity</small></h2>
+          </div>
+          <div class="card-panel">
+            <div id="admin-users-container" aria-live="polite" aria-label="Registered users"></div>
+          </div>
+        </section>
+
+
+        <!-- ═══ ADMIN ATTENDANCE ═══ -->
+        <section class="content-section" id="section-admin-attendance" aria-label="Manage Attendance">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📋</div>
+            <h2>Manage Attendance<small>Record per-student, per-date attendance</small></h2>
+          </div>
+
+          <!-- Mark form -->
+          <div class="card-panel">
+            <h4 style="margin-bottom:14px;">✏️ Record Attendance</h4>
+            <div class="admin-att-form">
+              <div class="att-form-row">
+                <label for="admin-att-student">Student</label>
+                <select id="admin-att-student"
+                  onchange="adminLoadAttendanceRecords()"
+                  aria-label="Select student">
+                  <option value="">— Select Student —</option>
+                </select>
+              </div>
+              <div class="att-form-row">
+                <label for="admin-att-subject">Subject</label>
+                <input type="text" id="admin-att-subject"
+                  placeholder="e.g. Mathematics"
+                  oninput="adminLoadAttendanceRecords()"
+                  aria-label="Subject name">
+              </div>
+              <div class="att-form-row">
+                <label for="admin-att-date">Date</label>
+                <input type="date" id="admin-att-date" aria-label="Date">
+              </div>
+              <div class="att-form-row">
+                <label for="admin-att-present">Status</label>
+                <select id="admin-att-present" aria-label="Present or absent">
+                  <option value="true">✓ Present</option>
+                  <option value="false">✗ Absent</option>
+                </select>
+              </div>
+              <button class="btn-action" onclick="adminMarkAttendance()" type="button">
+                💾 Save Record
+              </button>
+            </div>
+          </div>
+
+          <!-- Records table -->
+          <div class="card-panel">
+            <div class="admin-att-records-header">
+              <h4>📅 Attendance Records
+                <span id="admin-att-record-count" class="rec-count-badge"></span>
+              </h4>
+              <small style="color:var(--text-muted);">Showing latest 60 entries</small>
+            </div>
+            <div id="admin-att-records" aria-live="polite">
+              <p class="att-empty-hint">Select a student above to view records.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ ADMIN STUDENT REPORTS ═══ -->
+        <section class="content-section" id="section-admin-reports" aria-label="Student Reports">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📊</div>
+            <h2>Student Reports<small>CGPA, attendance &amp; task performance</small></h2>
+          </div>
+
+          <!-- Export buttons -->
+          <div class="card-panel">
+            <h4 style="margin-bottom:14px;">📥 Export All Data as CSV</h4>
+            <div class="export-btns">
+              <button class="btn-action" onclick="adminExportStudentsCSV()" type="button">
+                👤 All Students
+              </button>
+              <button class="btn-action" onclick="adminExportProgressCSV()" type="button">
+                📈 All CGPA / Progress
+              </button>
+              <button class="btn-action" onclick="adminExportAttendanceCSV()" type="button">
+                📋 All Attendance
+              </button>
+            </div>
+          </div>
+
+          <!-- Per-student cards -->
+          <div class="card-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+              <h4 style="margin:0;">🎓 Individual Student Overview</h4>
+              <input
+                type="search"
+                id="report-search"
+                placeholder="🔍 Search by name or reg…"
+                oninput="filterReportCards()"
+                style="padding:8px 12px;border:1.5px solid var(--border-input);border-radius:var(--radius-sm);background:var(--bg-gray);font-size:0.85rem;outline:none;font-family:inherit;color:var(--text-dark);width:220px;"
+                aria-label="Search students"
+              >
+            </div>
+            <div id="admin-reports-container" aria-live="polite"></div>
+          </div>
+        </section>
+
+      </main><!-- /.main-content -->
+    </div><!-- /.app-body -->
+  </div><!-- /#app-container -->
+
+  <!-- ══════════════════════════════════════════════
+       AI CHATBOT
+       ══════════════════════════════════════════════ -->
+  <button class="chatbot-fab" id="chatbot-fab" onclick="toggleChatbot()" type="button"
+    aria-label="Open AI study assistant" aria-haspopup="dialog">🤖</button>
+
+  <div class="chatbot-window" id="chatbot-window"
+    role="dialog" aria-label="StudyBuddy AI Chat" aria-modal="false">
+
+    <div class="chatbot-header">
+      <div class="ch-avatar" aria-hidden="true">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+          <!-- Antenna -->
+          <line x1="18" y1="4" x2="18" y2="9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="18" cy="3" r="2" fill="#FFD700"/>
+          <!-- Head -->
+          <rect x="7" y="9" width="22" height="16" rx="4" fill="#fff" fill-opacity="0.95"/>
+          <!-- Eyes -->
+          <rect x="11" y="14" width="5" height="4" rx="1.5" fill="#6C63FF"/>
+          <rect x="20" y="14" width="5" height="4" rx="1.5" fill="#6C63FF"/>
+          <!-- Eye glow -->
+          <circle cx="13" cy="15.5" r="1" fill="#fff" fill-opacity="0.7"/>
+          <circle cx="22" cy="15.5" r="1" fill="#fff" fill-opacity="0.7"/>
+          <!-- Mouth -->
+          <rect x="12" y="20" width="12" height="2.5" rx="1.2" fill="#6C63FF" fill-opacity="0.5"/>
+          <rect x="13" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF"/>
+          <rect x="17" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF"/>
+          <rect x="21" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF"/>
+          <!-- Neck -->
+          <rect x="15" y="25" width="6" height="3" rx="1" fill="#fff" fill-opacity="0.7"/>
+          <!-- Body -->
+          <rect x="9" y="28" width="18" height="6" rx="3" fill="#fff" fill-opacity="0.8"/>
+          <!-- Chest light -->
+          <circle cx="18" cy="31" r="2" fill="#FFD700" fill-opacity="0.9"/>
+        </svg>
+      </div>
+      <div class="ch-info">
+        <h4>StudyBuddy AI</h4>
+        <span>Powered by Gemini</span>
+      </div>
+      <button class="ch-close" onclick="closeChatbot()" type="button" aria-label="Close chat">✕</button>
+    </div>
+
+    <!-- Chat area — key is shared via CONFIG.GEMINI_KEY (admin-managed) -->
+    <div id="chatbot-chat-area" style="display:flex;flex-direction:column;flex:1;">
+      <div class="chatbot-messages" id="chatbot-messages" aria-live="polite" aria-label="Chat messages">
+        <div class="chat-msg bot">
+          Hi! 👋 I'm <strong>StudyBuddy</strong>, your AI study companion.
+          Ask me anything about your subjects, study tips, or let me quiz you!
+        </div>
+      </div>
+      <div class="chatbot-input">
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Ask me anything…"
+          aria-label="Message StudyBuddy"
+          onkeydown="if(event.key==='Enter') sendChatMessage()"
+        >
+        <button onclick="sendChatMessage()" type="button" aria-label="Send message">➤</button>
+      </div>
+    </div><!-- /#chatbot-chat-area -->
+
+  </div><!-- /#chatbot-window -->
+
+  <script src="app.js"></script>
+</body>
+</html>

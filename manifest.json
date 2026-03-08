@@ -1,0 +1,36 @@
+{
+    "name": "StudyPlanner",
+    "short_name": "StudyPlanner",
+    "description": "Smart Study Companion with AI Chatbot, Flashcards, Pomodoro Timer & More",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
+    "background_color": "#004d40",
+    "theme_color": "#004d40",
+    "orientation": "any",
+    "lang": "en",
+    "scope": "./",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Pomodoro Timer",
+            "short_name": "Timer",
+            "description": "Start a study session",
+            "url": "./index.html#pomodoro"
+        },
+        {
+            "name": "My Tasks",
+            "short_name": "Tasks",
+            "description": "View your task list",
+            "url": "./index.html#tasks"
+        }
+    ],
+    "categories": ["education", "productivity"]
+}
