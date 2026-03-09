@@ -33,15 +33,21 @@
 
 'use strict';
 
+/** Simple debounce helper for search inputs */
+function _debounce(fn, ms = 250) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+}
+
 /* ─────────────────────────────────────────────────────────────
    SECTION 1 — CONFIGURATION
    ───────────────────────────────────────────────────────────── */
 
 const CONFIG = Object.freeze({
-  SUPABASE_URL:  'https://twynkveodyirtdmxhskk.supabase.co',
-  SUPABASE_KEY:  'sb_publishable_M-fl8590-ZqAnYY6Y1o1QA_kqhWs48U',
-  ADMIN_EMAIL:   'msajeeshna@gmail.com',
-  AUTH_TIMEOUT:  3000,   // ms – safety net before forcing auth screen
+  SUPABASE_URL: 'https://twynkveodyirtdmxhskk.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_M-fl8590-ZqAnYY6Y1o1QA_kqhWs48U',
+  ADMIN_EMAIL: 'msajeeshna@gmail.com',
+  AUTH_TIMEOUT: 3000,   // ms – safety net before forcing auth screen
   TOAST_DURATION: 3500,  // ms
   POMO_MODES: Object.freeze({ study: 1500, break: 300, longbreak: 900 }),
   SEMESTER_SUBJECTS: Object.freeze({
@@ -52,7 +58,7 @@ const CONFIG = Object.freeze({
     5: ['Elective 1', 'Core Subject'],
     6: ['Elective 2', 'Project'],
   }),
-  GEMINI_MODEL:  'gemini-2.0-flash',
+  GEMINI_MODEL: 'gemini-2.0-flash',
   // Gemini API key is stored securely in Supabase Edge Function secrets — NOT here.
   MAX_PDF_BYTES: 15 * 1024 * 1024,  // 15 MB
 });
@@ -86,8 +92,8 @@ const AppState = (() => {
 
   const els = () => ({
     loading: document.getElementById('loading-screen'),
-    login:   document.getElementById('login-screen'),
-    app:     document.getElementById('app-container'),
+    login: document.getElementById('login-screen'),
+    app: document.getElementById('app-container'),
   });
 
   /**
@@ -146,8 +152,8 @@ const AppState = (() => {
    SECTION 4 — APPLICATION RUNTIME STATE
    ───────────────────────────────────────────────────────────── */
 
-let currentUser    = null;
-let progressChart  = null;
+let currentUser = null;
+let progressChart = null;
 let appInitialized = false;
 let tasksInitialized = false;
 
@@ -183,9 +189,9 @@ function el(tag, attrs = {}, children = []) {
   for (const [key, value] of Object.entries(attrs)) {
     if (value == null) continue;
     switch (key) {
-      case 'className':    node.className = value;             break;
-      case 'textContent':  node.textContent = String(value);  break;
-      case 'innerHTML':    node.innerHTML = value;             break;
+      case 'className': node.className = value; break;
+      case 'textContent': node.textContent = String(value); break;
+      case 'innerHTML': node.innerHTML = value; break;
       case 'style':
         if (typeof value === 'object') Object.assign(node.style, value);
         else node.style.cssText = value;
@@ -239,7 +245,7 @@ const Toast = (() => {
       'aria-live': 'polite',
     }, [
       el('span', { className: 't-icon', textContent: ICONS[type] ?? '✅' }),
-      el('span', { className: 't-msg',  textContent: message }),
+      el('span', { className: 't-msg', textContent: message }),
       el('button', {
         className: 't-close',
         textContent: '✕',
@@ -270,7 +276,7 @@ function showToast(msg, type) { Toast.show(msg, type); }
    ───────────────────────────────────────────────────────────── */
 
 function triggerConfetti() {
-  const COLORS = ['#ff6f61','#4db6ac','#7c4dff','#448aff','#ffb300','#66bb6a','#ff8a80'];
+  const COLORS = ['#ff6f61', '#4db6ac', '#7c4dff', '#448aff', '#ffb300', '#66bb6a', '#ff8a80'];
   const container = el('div', { className: 'confetti-container', 'aria-hidden': 'true' });
   document.body.appendChild(container);
 
@@ -279,13 +285,13 @@ function triggerConfetti() {
     const piece = el('div', {
       className: 'confetti-piece',
       style: {
-        left:              `${Math.random() * 100}vw`,
-        background:        COLORS[Math.floor(Math.random() * COLORS.length)],
-        animationDelay:    `${Math.random() * 2}s`,
+        left: `${Math.random() * 100}vw`,
+        background: COLORS[Math.floor(Math.random() * COLORS.length)],
+        animationDelay: `${Math.random() * 2}s`,
         animationDuration: `${2 + Math.random() * 2}s`,
-        width:             `${size}px`,
-        height:            `${size}px`,
-        borderRadius:      Math.random() > 0.5 ? '50%' : '2px',
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: Math.random() > 0.5 ? '50%' : '2px',
       },
     });
     container.appendChild(piece);
@@ -304,14 +310,14 @@ let _isSignUp = false;
 /** Toggle between Sign-In and Sign-Up forms. */
 function toggleAuthMode() {
   _isSignUp = !_isSignUp;
-  const nameInput   = getEl('auth-name');
-  const btn         = getEl('auth-btn');
-  const toggleText  = getEl('toggle-text');
-  const toggleLink  = getEl('toggle-link');
-  const errEl       = getEl('auth-error');
+  const nameInput = getEl('auth-name');
+  const btn = getEl('auth-btn');
+  const toggleText = getEl('toggle-text');
+  const toggleLink = getEl('toggle-link');
+  const errEl = getEl('auth-error');
 
   if (nameInput) nameInput.style.display = _isSignUp ? 'block' : 'none';
-  if (btn)       btn.textContent = _isSignUp ? 'Sign Up' : 'Sign In';
+  if (btn) btn.textContent = _isSignUp ? 'Sign Up' : 'Sign In';
   if (toggleText) toggleText.textContent = _isSignUp
     ? 'Already have an account?'
     : "Don't have an account?";
@@ -330,9 +336,9 @@ async function loginWithGoogle() {
 
 /** Handle email/password sign-in or sign-up. */
 async function handleAuth() {
-  const email    = getEl('auth-email')?.value.trim() ?? '';
+  const email = getEl('auth-email')?.value.trim() ?? '';
   const password = getEl('auth-password')?.value ?? '';
-  const errEl    = getEl('auth-error');
+  const errEl = getEl('auth-error');
 
   if (errEl) errEl.textContent = '';
 
@@ -347,7 +353,11 @@ async function handleAuth() {
   try {
     if (_isSignUp) {
       const name = getEl('auth-name')?.value.trim() ?? '';
-      if (!name) { Toast.show('Please enter your name.', 'warning'); return; }
+      if (!name) {
+        Toast.show('Please enter your name.', 'warning');
+        if (btn) { btn.disabled = false; btn.textContent = 'Sign Up'; }
+        return;
+      }
 
       const { error } = await supa.auth.signUp({
         email, password,
@@ -379,9 +389,12 @@ async function handleAuth() {
 
 /** Sign out the current user and reset runtime state. */
 async function logoutUser() {
+  // Clear Pomodoro timer to prevent orphaned intervals
+  clearInterval(_pomoInterval);
+  _pomoRunning = false;
   tasksInitialized = false;
-  appInitialized   = false;
-  currentUser      = null;
+  appInitialized = false;
+  currentUser = null;
   await supa.auth.signOut();
 }
 
@@ -396,18 +409,18 @@ supa.auth.onAuthStateChange((_event, session) => {
     currentUser = session.user;
     AppState.switchScreen('app');
 
-    const meta        = currentUser.user_metadata ?? {};
+    const meta = currentUser.user_metadata ?? {};
     const displayName = meta.name ?? meta.full_name ?? currentUser.email.split('@')[0];
 
-    const nameEl   = getEl('user-display-name');
+    const nameEl = getEl('user-display-name');
     const avatarEl = getEl('avatar');
-    if (nameEl)   nameEl.textContent   = displayName;
+    if (nameEl) nameEl.textContent = displayName;
     if (avatarEl) avatarEl.textContent = displayName.charAt(0).toUpperCase();
 
     if (!appInitialized) {
       appInitialized = true;
       if (isAdmin()) {
-        if (nameEl)   nameEl.textContent   = '👑 Admin';
+        if (nameEl) nameEl.textContent = '👑 Admin';
         if (avatarEl) avatarEl.textContent = 'A';
         initAdminApp();
       } else {
@@ -415,8 +428,8 @@ supa.auth.onAuthStateChange((_event, session) => {
       }
     }
   } else {
-    currentUser      = null;
-    appInitialized   = false;
+    currentUser = null;
+    appInitialized = false;
     tasksInitialized = false;
     AppState.switchScreen('auth');
   }
@@ -504,7 +517,7 @@ function _applyTheme(theme) {
 
 function toggleDarkMode() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const next   = isDark ? 'light' : 'dark';
+  const next = isDark ? 'light' : 'dark';
   _applyTheme(next);
   localStorage.setItem('sp-theme', next);
 }
@@ -563,14 +576,14 @@ async function updateDashboard() {
     ]);
 
     if (tasks.data) {
-      const done  = tasks.data.filter(t => t.done).length;
+      const done = tasks.data.filter(t => t.done).length;
       const total = tasks.data.length;
       const dashTasks = getEl('dash-tasks');
       if (dashTasks) dashTasks.textContent = total > 0 ? `${done}/${total}` : '0';
     }
 
     if (reminders.data) {
-      const today    = new Date(); today.setHours(0, 0, 0, 0);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
       const upcoming = reminders.data.filter(r => {
         const diff = Math.ceil((new Date(r.date) - today) / 86_400_000);
         return diff >= 0 && diff <= 7;
@@ -580,7 +593,7 @@ async function updateDashboard() {
     }
 
     if (progress.data?.length > 0) {
-      const avg  = progress.data.reduce((s, r) => s + r.marks, 0) / progress.data.length;
+      const avg = progress.data.reduce((s, r) => s + r.marks, 0) / progress.data.length;
       const cgpa = getEl('dash-cgpa');
       if (cgpa) cgpa.textContent = avg.toFixed(2);
     } else {
@@ -602,9 +615,13 @@ async function updateDashboard() {
 
 async function recordStreak() {
   if (!currentUser) return;
-  const today = new Date().toISOString().split('T')[0];
-  await supa.from('streak_log')
-    .upsert({ user_id: currentUser.id, date: today }, { onConflict: 'user_id,date' });
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    await supa.from('streak_log')
+      .upsert({ user_id: currentUser.id, date: today }, { onConflict: 'user_id,date' });
+  } catch (err) {
+    console.error('[Streak] recordStreak error:', err);
+  }
 }
 
 async function loadStudyStreak() {
@@ -619,10 +636,11 @@ async function loadStudyStreak() {
 
   let streak = 0;
   const cursor = new Date();
+  const dateSet = new Set(data.map(r => r.date));
 
   for (let i = 0; i < 365; i++) {
     const dateStr = cursor.toISOString().split('T')[0];
-    if (data.find(r => r.date === dateStr)) {
+    if (dateSet.has(dateStr)) {
       streak++;
       cursor.setDate(cursor.getDate() - 1);
     } else {
@@ -630,9 +648,9 @@ async function loadStudyStreak() {
     }
   }
 
-  const dashStreak    = getEl('dash-streak');
+  const dashStreak = getEl('dash-streak');
   const streakDisplay = getEl('streak-count-display');
-  if (dashStreak)    dashStreak.textContent    = streak;
+  if (dashStreak) dashStreak.textContent = streak;
   if (streakDisplay) streakDisplay.textContent = streak;
 }
 
@@ -643,32 +661,40 @@ async function loadStudyStreak() {
 
 async function loadStudyTime() {
   if (!currentUser) return;
-  const today = new Date().toISOString().split('T')[0];
-  const { data } = await supa.from('study_time')
-    .select('subject, minutes')
-    .eq('user_id', currentUser.id)
-    .eq('date', today);
-  _renderStudyTime(data ?? []);
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await supa.from('study_time')
+      .select('subject, minutes')
+      .eq('user_id', currentUser.id)
+      .eq('date', today);
+    _renderStudyTime(data ?? []);
+  } catch (err) {
+    console.error('[StudyTime] loadStudyTime error:', err);
+  }
 }
 
 async function logStudyTime(subject, minutes) {
   if (!subject || !minutes || !currentUser) return;
-  const today = new Date().toISOString().split('T')[0];
+  try {
+    const today = new Date().toISOString().split('T')[0];
 
-  const { data } = await supa.from('study_time')
-    .select('id, minutes')
-    .eq('user_id', currentUser.id)
-    .eq('date', today)
-    .eq('subject', subject)
-    .maybeSingle();
+    const { data } = await supa.from('study_time')
+      .select('id, minutes')
+      .eq('user_id', currentUser.id)
+      .eq('date', today)
+      .eq('subject', subject)
+      .maybeSingle();
 
-  if (data) {
-    await supa.from('study_time').update({ minutes: data.minutes + minutes }).eq('id', data.id);
-  } else {
-    await supa.from('study_time').insert({ user_id: currentUser.id, date: today, subject, minutes });
+    if (data) {
+      await supa.from('study_time').update({ minutes: data.minutes + minutes }).eq('id', data.id);
+    } else {
+      await supa.from('study_time').insert({ user_id: currentUser.id, date: today, subject, minutes });
+    }
+
+    loadStudyTime();
+  } catch (err) {
+    console.error('[StudyTime] logStudyTime error:', err);
   }
-
-  loadStudyTime();
 }
 
 function _renderStudyTime(rows) {
@@ -687,7 +713,7 @@ function _renderStudyTime(rows) {
 
   rows.forEach(row => {
     const hours = Math.floor(row.minutes / 60);
-    const mins  = row.minutes % 60;
+    const mins = row.minutes % 60;
     const label = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
     container.appendChild(el('div', { className: 'task-item' }, [
@@ -734,8 +760,9 @@ async function loadExams() {
    ───────────────────────────────────────────────────────────── */
 
 async function addReminder() {
-  const title     = getEl('reminder-title')?.value.trim() ?? '';
-  const date      = getEl('reminder-date')?.value ?? '';
+  if (!currentUser) return;
+  const title = getEl('reminder-title')?.value.trim() ?? '';
+  const date = getEl('reminder-date')?.value ?? '';
   const recurring = getEl('reminder-recurring')?.value ?? 'none';
 
   if (!title || !date) { Toast.show('Please fill in all reminder details.', 'warning'); return; }
@@ -746,13 +773,14 @@ async function addReminder() {
   if (error) { Toast.show(`Failed to save: ${error.message}`, 'error'); return; }
 
   getEl('reminder-title').value = '';
-  getEl('reminder-date').value  = '';
+  getEl('reminder-date').value = '';
   Toast.show('Reminder set! 🔔');
   loadReminders();
   updateDashboard();
 }
 
 async function loadReminders() {
+  if (!currentUser) return;
   const { data } = await supa.from('reminders')
     .select('*')
     .eq('user_id', currentUser.id)
@@ -763,12 +791,12 @@ async function loadReminders() {
   list.innerHTML = '';
 
   (data ?? []).forEach(d => {
-    const today    = new Date(); today.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const diffDays = Math.ceil((new Date(d.date) - today) / 86_400_000);
     const [statusClass, statusText] =
       diffDays <= 1 ? ['status-danger', 'URGENT']
-      : diffDays <= 4 ? ['status-alert', 'ALERT']
-      : ['status-safe', 'SAFE'];
+        : diffDays <= 4 ? ['status-alert', 'ALERT']
+          : ['status-safe', 'SAFE'];
 
     const recurText = d.recurring && d.recurring !== 'none'
       ? ` · Repeats ${d.recurring}` : '';
@@ -802,10 +830,11 @@ async function loadReminders() {
    ───────────────────────────────────────────────────────────── */
 
 async function addNote() {
-  const title   = getEl('note-title')?.value.trim() ?? '';
+  if (!currentUser) return;
+  const title = getEl('note-title')?.value.trim() ?? '';
   const content = getEl('note-content')?.value ?? '';
-  const link    = getEl('note-link')?.value.trim() ?? '';
-  const tags    = getEl('note-tags')?.value.trim() ?? '';
+  const link = getEl('note-link')?.value.trim() ?? '';
+  const tags = getEl('note-tags')?.value.trim() ?? '';
 
   if (!title) { Toast.show('Please enter a note title.', 'warning'); return; }
 
@@ -823,6 +852,7 @@ async function addNote() {
 }
 
 async function loadNotes() {
+  if (!currentUser) return;
   const { data } = await supa.from('notes')
     .select('*')
     .eq('user_id', currentUser.id)
@@ -855,7 +885,7 @@ async function loadNotes() {
         },
       }),
       el('h4', { style: { fontSize: '0.95rem', paddingRight: '60px' }, textContent: d.title }),
-      el('p',  { style: { fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }, textContent: d.content ?? '' }),
+      el('p', { style: { fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }, textContent: d.content ?? '' }),
     ]);
 
     if (d.tags) {
@@ -878,14 +908,14 @@ async function loadNotes() {
   });
 }
 
-/** Live search across note text content (client-side, no re-fetch). */
-function searchNotes() {
+/** Live search across note text content (client-side, no re-fetch). Debounced. */
+const searchNotes = _debounce(() => {
   const query = getEl('note-search-input')?.value.toLowerCase() ?? '';
   const items = getEl('notes-container')?.children ?? [];
   Array.from(items).forEach(item => {
     item.style.display = item.textContent.toLowerCase().includes(query) ? '' : 'none';
   });
-}
+});
 
 
 /* ─────────────────────────────────────────────────────────────
@@ -930,15 +960,15 @@ async function loadAdminNotes() {
   }
 
   // Populate subject dropdowns for selected semester
-  const subjects    = CONFIG.SEMESTER_SUBJECTS[sem] ?? [];
-  const subjectSel  = getEl('subject-select');
+  const subjects = CONFIG.SEMESTER_SUBJECTS[sem] ?? [];
+  const subjectSel = getEl('subject-select');
   const pomoSubject = getEl('pomo-subject');
 
-  if (subjectSel)  subjectSel.innerHTML  = '';
+  if (subjectSel) subjectSel.innerHTML = '';
   if (pomoSubject) pomoSubject.innerHTML = '<option value="">General</option>';
 
   subjects.forEach(s => {
-    if (subjectSel)  subjectSel.appendChild(el('option',  { value: s, textContent: s }));
+    if (subjectSel) subjectSel.appendChild(el('option', { value: s, textContent: s }));
     if (pomoSubject) pomoSubject.appendChild(el('option', { value: s, textContent: s }));
   });
 
@@ -946,7 +976,8 @@ async function loadAdminNotes() {
 }
 
 async function addUserNote() {
-  const sem     = getEl('sem-select')?.value ?? '1';
+  if (!currentUser) return;
+  const sem = getEl('sem-select')?.value ?? '1';
   const subject = getEl('subject-select')?.value ?? '';
   const content = getEl('sem-note-content')?.value ?? '';
 
@@ -963,6 +994,7 @@ async function addUserNote() {
 }
 
 async function loadUserSemNotes() {
+  if (!currentUser) return;
   const { data } = await supa.from('sem_notes')
     .select('*')
     .eq('user_id', currentUser.id)
@@ -1021,9 +1053,9 @@ function initChart() {
         label: 'SGPA / Marks',
         data: [],
         backgroundColor: 'rgba(0,105,92,0.6)',
-        borderColor:     'rgba(0,77,64,1)',
-        borderWidth:     1,
-        borderRadius:    6,
+        borderColor: 'rgba(0,77,64,1)',
+        borderWidth: 1,
+        borderRadius: 6,
       }],
     },
     options: {
@@ -1036,16 +1068,17 @@ function initChart() {
 }
 
 async function addProgress() {
-  const sem   = getEl('sem-no')?.value ?? '';
+  if (!currentUser) return;
+  const sem = getEl('sem-no')?.value ?? '';
   const marks = parseFloat(getEl('sem-marks')?.value ?? '');
 
   if (!sem || isNaN(marks)) { Toast.show('Please enter semester details.', 'warning'); return; }
 
   await supa.from('progress').insert({ user_id: currentUser.id, sem, marks });
 
-  const semNo   = getEl('sem-no');
+  const semNo = getEl('sem-no');
   const semMark = getEl('sem-marks');
-  if (semNo)   semNo.value   = '';
+  if (semNo) semNo.value = '';
   if (semMark) semMark.value = '';
 
   Toast.show('Semester progress added! 📊');
@@ -1054,6 +1087,7 @@ async function addProgress() {
 }
 
 async function loadProgress() {
+  if (!currentUser) return;
   const { data } = await supa.from('progress')
     .select('*')
     .eq('user_id', currentUser.id)
@@ -1064,7 +1098,7 @@ async function loadProgress() {
   tbody.innerHTML = '';
 
   if (progressChart) {
-    progressChart.data.labels   = [];
+    progressChart.data.labels = [];
     progressChart.data.datasets[0].data = [];
   }
 
@@ -1100,7 +1134,7 @@ async function loadProgress() {
   if (progressChart) progressChart.update();
 
   const cgpaDisplay = getEl('cgpa-display');
-  const currentGpa  = count > 0 ? total / count : 0;
+  const currentGpa = count > 0 ? total / count : 0;
   if (cgpaDisplay) cgpaDisplay.textContent = currentGpa.toFixed(2);
 
   _updateGpaGoal(currentGpa);
@@ -1115,7 +1149,7 @@ function saveGpaGoal() {
 }
 
 function _updateGpaGoal(currentGpa) {
-  const goal       = parseFloat(localStorage.getItem('sp-gpa-goal') ?? '0') || 0;
+  const goal = parseFloat(localStorage.getItem('sp-gpa-goal') ?? '0') || 0;
   const goalDisplay = getEl('gpa-goal-display');
   if (!goalDisplay) return;
 
@@ -1124,14 +1158,14 @@ function _updateGpaGoal(currentGpa) {
     return;
   }
 
-  const pct  = Math.min((currentGpa / goal) * 100, 100);
+  const pct = Math.min((currentGpa / goal) * 100, 100);
   const diff = (goal - currentGpa).toFixed(2);
 
   goalDisplay.innerHTML = '';
   goalDisplay.appendChild(el('div', { className: 'gpa-goal-widget' }, [
     el('div', { className: 'gpg-info' }, [
       el('h4', { textContent: `${currentGpa.toFixed(2)} / ${goal.toFixed(2)}` }),
-      el('p',  { textContent: currentGpa >= goal ? '🎉 You\'ve reached your goal!' : `Need ${diff} more to reach your goal` }),
+      el('p', { textContent: currentGpa >= goal ? '🎉 You\'ve reached your goal!' : `Need ${diff} more to reach your goal` }),
     ]),
   ]));
   goalDisplay.appendChild(el('div', { className: 'task-progress', style: { marginTop: '8px' } }, [
@@ -1153,10 +1187,10 @@ async function saveProfile() {
   const payload = {
     user_id: currentUser.id,
     name,
-    reg:   getEl('p-reg')?.value.trim()   ?? '',
+    reg: getEl('p-reg')?.value.trim() ?? '',
     phone: getEl('p-phone')?.value.trim() ?? '',
-    adm:   getEl('p-adm')?.value.trim()   ?? '',
-    act:   getEl('p-act')?.value.trim()   ?? '',
+    adm: getEl('p-adm')?.value.trim() ?? '',
+    act: getEl('p-act')?.value.trim() ?? '',
   };
 
   const { error } = await supa.from('profiles')
@@ -1178,10 +1212,10 @@ async function loadProfile() {
 
   const fields = [
     ['p-name', 'dp-name', data.name],
-    ['p-reg',  'dp-reg',  data.reg],
-    ['p-phone','dp-phone',data.phone],
-    ['p-adm',  'dp-adm',  data.adm],
-    ['p-act',  'dp-act',  data.act],
+    ['p-reg', 'dp-reg', data.reg],
+    ['p-phone', 'dp-phone', data.phone],
+    ['p-adm', 'dp-adm', data.adm],
+    ['p-act', 'dp-act', data.act],
   ];
 
   fields.forEach(([inputId, displayId, value]) => {
@@ -1198,11 +1232,11 @@ async function loadProfile() {
    SECTION 21 — POMODORO TIMER
    ───────────────────────────────────────────────────────────── */
 
-let _pomoInterval   = null;
-let _pomoSeconds    = CONFIG.POMO_MODES.study;
-let _pomoRunning    = false;
-let _pomoMode       = 'study';
-let _pomoSessions   = 0;
+let _pomoInterval = null;
+let _pomoSeconds = CONFIG.POMO_MODES.study;
+let _pomoRunning = false;
+let _pomoMode = 'study';
+let _pomoSessions = 0;
 
 const POMO_LABELS = Object.freeze({ study: 'STUDY TIME', break: 'SHORT BREAK', longbreak: 'LONG BREAK' });
 
@@ -1256,25 +1290,31 @@ function pausePomodoro() {
 
 function resetPomodoro() {
   clearInterval(_pomoInterval);
-  _pomoRunning  = false;
-  _pomoSeconds  = CONFIG.POMO_MODES[_pomoMode] ?? CONFIG.POMO_MODES.study;
+  _pomoRunning = false;
+  _pomoSeconds = CONFIG.POMO_MODES[_pomoMode] ?? CONFIG.POMO_MODES.study;
   _updatePomoDisplay();
 }
 
-function _updatePomoDisplay() {
-  const m    = Math.floor(_pomoSeconds / 60);
-  const s    = _pomoSeconds % 60;
-  const timeEl = getEl('pomo-time');
-  if (timeEl) timeEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+// Cached DOM elements for Pomodoro — avoids getElementById every second
+let _pomoTimeEl = null;
+let _pomoRingEl = null;
 
-  const total  = CONFIG.POMO_MODES[_pomoMode] ?? CONFIG.POMO_MODES.study;
+function _updatePomoDisplay() {
+  const m = Math.floor(_pomoSeconds / 60);
+  const s = _pomoSeconds % 60;
+  const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+  if (!_pomoTimeEl) _pomoTimeEl = getEl('pomo-time');
+  if (_pomoTimeEl) _pomoTimeEl.textContent = timeStr;
+
+  const total = CONFIG.POMO_MODES[_pomoMode] ?? CONFIG.POMO_MODES.study;
   const offset = 2 * Math.PI * 100 * (_pomoSeconds / total);
-  const ring   = getEl('pomo-ring');
-  if (ring) ring.style.strokeDashoffset = offset;
+  if (!_pomoRingEl) _pomoRingEl = getEl('pomo-ring');
+  if (_pomoRingEl) _pomoRingEl.style.strokeDashoffset = offset;
 
   // Update document title when timer is running
   if (_pomoRunning) {
-    document.title = `(${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}) StudyPlanner`;
+    document.title = `(${timeStr}) StudyPlanner`;
   } else {
     document.title = 'StudyPlanner – Smart Study Companion';
   }
@@ -1286,8 +1326,9 @@ function _updatePomoDisplay() {
    ───────────────────────────────────────────────────────────── */
 
 async function addTask() {
+  if (!currentUser) return;
   const input = getEl('task-input');
-  const text  = input?.value.trim() ?? '';
+  const text = input?.value.trim() ?? '';
   if (!text) return;
 
   await supa.from('tasks').insert({ user_id: currentUser.id, text, done: false });
@@ -1298,6 +1339,7 @@ async function addTask() {
 }
 
 async function loadTasks() {
+  if (!currentUser) return;
   const { data } = await supa.from('tasks')
     .select('*')
     .eq('user_id', currentUser.id)
@@ -1351,7 +1393,7 @@ async function loadTasks() {
   }
 
   tasksInitialized = true;
-  updateDashboard();
+  // Dashboard update removed here — handled by callers & initApp to avoid duplicate fetches
 }
 
 
@@ -1360,8 +1402,9 @@ async function loadTasks() {
    ───────────────────────────────────────────────────────────── */
 
 async function addFlashcard() {
-  const front   = getEl('fc-front')?.value.trim()   ?? '';
-  const back    = getEl('fc-back')?.value.trim()    ?? '';
+  if (!currentUser) return;
+  const front = getEl('fc-front')?.value.trim() ?? '';
+  const back = getEl('fc-back')?.value.trim() ?? '';
   const subject = getEl('fc-subject')?.value.trim() ?? '';
 
   if (!front || !back) {
@@ -1381,6 +1424,7 @@ async function addFlashcard() {
 }
 
 async function loadFlashcards() {
+  if (!currentUser) return;
   const { data } = await supa.from('flashcards')
     .select('*')
     .eq('user_id', currentUser.id)
@@ -1442,7 +1486,7 @@ async function loadFlashcards() {
    ───────────────────────────────────────────────────────────── */
 
 /** Calendar state — shared across subject changes */
-let _attCalYear  = new Date().getFullYear();
+let _attCalYear = new Date().getFullYear();
 let _attCalMonth = new Date().getMonth(); // 0-indexed
 
 /**
@@ -1495,13 +1539,13 @@ async function renderAttendanceCalendar(subject) {
   const records = {};
   (data ?? []).forEach(r => { records[r.date] = r.present; });
 
-  const allDates    = Object.keys(records);
-  const totalDays   = allDates.length;
+  const allDates = Object.keys(records);
+  const totalDays = allDates.length;
   const presentDays = allDates.filter(d => records[d]).length;
-  const absentDays  = totalDays - presentDays;
-  const pct         = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
-  const pctColor    = pct < 75 ? '#c62828' : pct < 85 ? '#e65100' : '#2e7d32';
-  const barClass    = pct < 75 ? 'danger' : pct < 85 ? 'warn' : 'good';
+  const absentDays = totalDays - presentDays;
+  const pct = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
+  const pctColor = pct < 75 ? '#c62828' : pct < 85 ? '#e65100' : '#2e7d32';
+  const barClass = pct < 75 ? 'danger' : pct < 85 ? 'warn' : 'good';
 
   grid.innerHTML = '';
 
@@ -1543,8 +1587,8 @@ async function renderAttendanceCalendar(subject) {
   }
 
   // ── Month navigator ────────────────────────────────────────
-  const MONTHS = ['January','February','March','April','May','June',
-                  'July','August','September','October','November','December'];
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
 
   grid.appendChild(el('div', { className: 'att-cal-nav' }, [
     el('button', {
@@ -1579,13 +1623,13 @@ async function renderAttendanceCalendar(subject) {
   });
 
   // Day-of-week headers
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d =>
+  ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(d =>
     calWrap.appendChild(el('div', { className: 'att-cal-hdr', textContent: d, role: 'columnheader' }))
   );
 
-  const firstDOW  = new Date(_attCalYear, _attCalMonth, 1).getDay();
+  const firstDOW = new Date(_attCalYear, _attCalMonth, 1).getDay();
   const daysInMon = new Date(_attCalYear, _attCalMonth + 1, 0).getDate();
-  const todayStr  = new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toISOString().split('T')[0];
 
   // Leading empty cells
   for (let i = 0; i < firstDOW; i++) {
@@ -1594,24 +1638,24 @@ async function renderAttendanceCalendar(subject) {
 
   // Day cells
   for (let d = 1; d <= daysInMon; d++) {
-    const mm      = String(_attCalMonth + 1).padStart(2, '0');
-    const dd      = String(d).padStart(2, '0');
+    const mm = String(_attCalMonth + 1).padStart(2, '0');
+    const dd = String(d).padStart(2, '0');
     const dateStr = `${_attCalYear}-${mm}-${dd}`;
-    const status  = records[dateStr]; // true | false | undefined
+    const status = records[dateStr]; // true | false | undefined
 
     let cls = 'att-cal-cell';
     if (dateStr === todayStr) cls += ' today';
-    if (status === true)      cls += ' present';
+    if (status === true) cls += ' present';
     else if (status === false) cls += ' absent';
 
-    const ariaLabel = status === true  ? `${dateStr}: Present`
-                    : status === false ? `${dateStr}: Absent`
-                    : `${dateStr}`;
+    const ariaLabel = status === true ? `${dateStr}: Present`
+      : status === false ? `${dateStr}: Absent`
+        : `${dateStr}`;
 
     calWrap.appendChild(el('div', { className: cls, role: 'gridcell', 'aria-label': ariaLabel }, [
       el('span', { className: 'att-day-num', textContent: d }),
       // "X" marks present days per product requirement
-      (status === true)  ? el('span', { className: 'att-day-mark att-present-x', textContent: 'X',   'aria-hidden': 'true' }) : null,
+      (status === true) ? el('span', { className: 'att-day-mark att-present-x', textContent: 'X', 'aria-hidden': 'true' }) : null,
       (status === false) ? el('span', { className: 'att-day-mark att-absent-dash', textContent: '—', 'aria-hidden': 'true' }) : null,
     ]));
   }
@@ -1655,7 +1699,7 @@ async function adminLoadAttendancePanel() {
   sel.innerHTML = '<option value="">— Select Student —</option>';
   (profiles ?? []).forEach(p => {
     sel.appendChild(el('option', {
-      value:       p.user_id,
+      value: p.user_id,
       textContent: `${p.name ?? 'Unknown'}${p.reg ? ' (' + p.reg + ')' : ''}`,
     }));
   });
@@ -1668,10 +1712,10 @@ async function adminLoadAttendancePanel() {
 }
 
 async function adminMarkAttendance() {
-  const userId  = getEl('admin-att-student')?.value  ?? '';
+  const userId = getEl('admin-att-student')?.value ?? '';
   const subject = getEl('admin-att-subject')?.value.trim() ?? '';
-  const date    = getEl('admin-att-date')?.value     ?? '';
-  const present = getEl('admin-att-present')?.value  === 'true';
+  const date = getEl('admin-att-date')?.value ?? '';
+  const present = getEl('admin-att-present')?.value === 'true';
 
   if (!userId || !subject || !date) {
     Toast.show('Please select a student, enter a subject, and choose a date.', 'warning');
@@ -1690,10 +1734,10 @@ async function adminMarkAttendance() {
 }
 
 async function adminLoadAttendanceRecords() {
-  const userId  = getEl('admin-att-student')?.value       ?? '';
+  const userId = getEl('admin-att-student')?.value ?? '';
   const subject = getEl('admin-att-subject')?.value.trim() ?? '';
-  const cntEl   = getEl('admin-att-record-count');
-  const cont    = getEl('admin-att-records');
+  const cntEl = getEl('admin-att-record-count');
+  const cont = getEl('admin-att-records');
   if (!cont) return;
 
   if (!userId) {
@@ -1720,7 +1764,7 @@ async function adminLoadAttendanceRecords() {
     return;
   }
 
-  const wrap  = el('div', { style: { overflowX: 'auto' } });
+  const wrap = el('div', { style: { overflowX: 'auto' } });
   const table = el('table', { 'aria-label': 'Attendance records' });
   table.appendChild(el('thead', {}, [el('tr', {}, [
     el('th', { scope: 'col', textContent: 'Date' }),
@@ -1781,10 +1825,10 @@ async function adminLoadStudentReports() {
     supa.from('tasks').select('user_id, done'),
   ]);
 
-  const profiles    = profilesRes.data    ?? [];
-  const progress    = progressRes.data    ?? [];
-  const attendance  = attendanceRes.data  ?? [];
-  const tasks       = tasksRes.data       ?? [];
+  const profiles = profilesRes.data ?? [];
+  const progress = progressRes.data ?? [];
+  const attendance = attendanceRes.data ?? [];
+  const tasks = tasksRes.data ?? [];
 
   container.innerHTML = '';
 
@@ -1804,17 +1848,17 @@ async function adminLoadStudentReports() {
       : '—';
 
     // Calculate overall attendance % from per-day records
-    const studentAtt     = attendance.filter(r => r.user_id === p.user_id);
-    const totalClasses   = studentAtt.length;
+    const studentAtt = attendance.filter(r => r.user_id === p.user_id);
+    const totalClasses = studentAtt.length;
     const presentClasses = studentAtt.filter(r => r.present).length;
     const attPct = totalClasses > 0 ? Math.round((presentClasses / totalClasses) * 100) : null;
 
     // Task completion
     const studentTasks = tasks.filter(r => r.user_id === p.user_id);
-    const doneTasks    = studentTasks.filter(r => r.done).length;
+    const doneTasks = studentTasks.filter(r => r.done).length;
 
     const attColor = attPct === null ? 'var(--text-muted)' : attPct < 75 ? '#c62828' : attPct < 85 ? '#f57f17' : '#2e7d32';
-    const attText  = attPct === null ? 'No data' : `${attPct}%`;
+    const attText = attPct === null ? 'No data' : `${attPct}%`;
 
     container.appendChild(el('div', { className: 'admin-report-card' }, [
 
@@ -1823,8 +1867,8 @@ async function adminLoadStudentReports() {
         el('div', { className: 'admin-user-avatar', textContent: (p.name ?? 'U').charAt(0).toUpperCase() }),
         el('div', { className: 'arc-identity' }, [
           el('strong', { textContent: p.name ?? 'Unknown Student' }),
-          el('span',   { textContent: p.reg ? `Reg: ${p.reg}` : 'No reg number' }),
-          el('span',   { textContent: p.phone ? `📞 ${p.phone}` : '' }),
+          el('span', { textContent: p.reg ? `Reg: ${p.reg}` : 'No reg number' }),
+          el('span', { textContent: p.phone ? `📞 ${p.phone}` : '' }),
         ]),
       ]),
 
@@ -1854,14 +1898,14 @@ async function adminLoadStudentReports() {
   });
 }
 
-/** Live client-side search across rendered report cards */
-function filterReportCards() {
+/** Live client-side search across rendered report cards. Debounced. */
+const filterReportCards = _debounce(() => {
   const query = getEl('report-search')?.value.toLowerCase().trim() ?? '';
   const cards = getEl('admin-reports-container')?.querySelectorAll('.admin-report-card') ?? [];
   cards.forEach(card => {
     card.style.display = card.textContent.toLowerCase().includes(query) ? '' : 'none';
   });
-}
+});
 
 /** Export all students' profiles as CSV — admin only */
 async function adminExportStudentsCSV() {
@@ -1896,7 +1940,7 @@ async function adminExportAttendanceCSV() {
     supa.from('attendance_records').select('user_id, subject, present'),
   ]);
   const profiles = profilesRes.data ?? [];
-  const records  = attRes.data      ?? [];
+  const records = attRes.data ?? [];
   // Aggregate per (user, subject)
   const agg = {};
   records.forEach(r => {
@@ -1907,7 +1951,7 @@ async function adminExportAttendanceCSV() {
   });
   const csv = 'Student Name,Reg No,Subject,Present,Total,Percentage\n' +
     Object.values(agg).map(r => {
-      const p   = profiles.find(p => p.user_id === r.user_id);
+      const p = profiles.find(p => p.user_id === r.user_id);
       const pct = r.total > 0 ? Math.round((r.present / r.total) * 100) : 0;
       return `"${p?.name ?? 'Unknown'}","${p?.reg ?? ''}","${r.subject}",${r.present},${r.total},${pct}%`;
     }).join('\n');
@@ -1915,11 +1959,13 @@ async function adminExportAttendanceCSV() {
 }
 
 function _downloadCSV(csv, filename) {
-  const a    = document.createElement('a');
-  a.href     = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+  const a = document.createElement('a');
+  const href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+  a.href = href;
   a.download = filename;
   a.click();
-  URL.revokeObjectURL(a.href);
+  // Delay revocation — download may not have started yet on some browsers
+  setTimeout(() => URL.revokeObjectURL(href), 1500);
   Toast.show(`Exported ${filename} 📥`, 'success');
 }
 
@@ -1928,7 +1974,7 @@ function _downloadCSV(csv, filename) {
    SECTION 26 — SETTINGS (theme only — API key is in CONFIG)
    ───────────────────────────────────────────────────────────── */
 
-function saveGeminiKey() {} // Deprecated — key lives in CONFIG.GEMINI_KEY
+function saveGeminiKey() { } // Deprecated — key lives in CONFIG.GEMINI_KEY
 
 
 /* ─────────────────────────────────────────────────────────────
@@ -1940,7 +1986,7 @@ function toggleChatbot() {
   if (!win) return;
 
   const isOpen = win.classList.toggle('open');
-  const fab    = getEl('chatbot-fab');
+  const fab = getEl('chatbot-fab');
   if (fab) fab.style.display = isOpen ? 'none' : 'flex';
 
   if (isOpen) {
@@ -1958,17 +2004,17 @@ function closeChatbot() {
 
 function _initChatbot() {
   // Key is shared via CONFIG.GEMINI_KEY — no per-user setup needed
-  const setup    = getEl('chatbot-setup');
+  const setup = getEl('chatbot-setup');
   const chatArea = getEl('chatbot-chat-area');
-  if (setup)    setup.style.display    = 'none';
+  if (setup) setup.style.display = 'none';
   if (chatArea) chatArea.style.display = 'flex';
 }
 
-function saveChatbotKey() {} // Deprecated — key is set in CONFIG.GEMINI_KEY
+function saveChatbotKey() { } // Deprecated — key is set in CONFIG.GEMINI_KEY
 
 async function sendChatMessage() {
   const input = getEl('chat-input');
-  const msg   = input?.value.trim() ?? '';
+  const msg = input?.value.trim() ?? '';
   if (!msg) return;
 
   if (input) input.value = '';
@@ -2060,10 +2106,10 @@ function _scrollChatToBottom() {
    ───────────────────────────────────────────────────────────── */
 
 async function adminAddExam() {
-  const day     = getEl('admin-exam-day')?.value.trim()     ?? '';
-  const time    = getEl('admin-exam-time')?.value           ?? '';
+  const day = getEl('admin-exam-day')?.value.trim() ?? '';
+  const time = getEl('admin-exam-time')?.value ?? '';
   const subject = getEl('admin-exam-subject')?.value.trim() ?? '';
-  const date    = getEl('admin-exam-date')?.value           ?? '';
+  const date = getEl('admin-exam-date')?.value ?? '';
 
   if (!day || !time || !subject) {
     Toast.show('Please fill in all exam fields.', 'warning');
@@ -2083,7 +2129,7 @@ async function adminAddExam() {
 
 async function adminLoadTimetable() {
   const { data } = await supa.from('admin_timetable').select('*').order('created_at');
-  const tbody    = getEl('admin-timetable-body');
+  const tbody = getEl('admin-timetable-body');
   if (!tbody) return;
   tbody.innerHTML = '';
 
@@ -2128,7 +2174,7 @@ async function adminHandlePdfUpload(file) {
   }
 
   // Validate subject BEFORE touching storage
-  const sem     = getEl('admin-pdf-sem')?.value ?? '1';
+  const sem = getEl('admin-pdf-sem')?.value ?? '1';
   const subject = getEl('admin-pdf-subject')?.value.trim() ?? '';
   if (!subject) {
     Toast.show('Please enter a subject name before selecting a file.', 'warning');
@@ -2138,18 +2184,18 @@ async function adminHandlePdfUpload(file) {
     return;
   }
 
-  const progressEl  = getEl('admin-upload-progress');
+  const progressEl = getEl('admin-upload-progress');
   const progressBar = getEl('admin-upload-progress-bar');
 
   const _setProgress = (pct, show = true) => {
-    if (progressEl)  progressEl.style.display = show ? 'block' : 'none';
-    if (progressBar) progressBar.style.width  = `${pct}%`;
+    if (progressEl) progressEl.style.display = show ? 'block' : 'none';
+    if (progressBar) progressBar.style.width = `${pct}%`;
   };
 
   _setProgress(20);
 
   // Sanitise filename — remove spaces & special chars
-  const safeName    = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const storagePath = `sem${sem}/${subject.replace(/\s+/g, '_')}/${Date.now()}_${safeName}`;
 
   try {
@@ -2166,7 +2212,7 @@ async function adminHandlePdfUpload(file) {
     if (uploadError) {
       console.error('[PDF Upload] Storage error:', uploadError);
       const isNoBucket = uploadError.message?.toLowerCase().includes('bucket') ||
-                         uploadError.statusCode === '404' || uploadError.error === 'Bucket not found';
+        uploadError.statusCode === '404' || uploadError.error === 'Bucket not found';
       const hint = isNoBucket
         ? '\n\nFix: In Supabase → Storage → New bucket → name it "pdfs" → enable Public.'
         : '';
@@ -2286,11 +2332,11 @@ async function adminLoadUsers() {
     supa.from('progress').select('user_id, marks'),
   ]);
 
-  const profiles = prRes.data   ?? [];
-  const streaks  = strRes.data  ?? [];
-  const tasks    = taskRes.data ?? [];
+  const profiles = prRes.data ?? [];
+  const streaks = strRes.data ?? [];
+  const tasks = taskRes.data ?? [];
   const progress = progRes.data ?? [];
-  const count    = prRes.count  ?? profiles.length;
+  const count = prRes.count ?? profiles.length;
 
   const countEl = getEl('admin-user-count');
   if (countEl) countEl.textContent = count;
@@ -2322,22 +2368,22 @@ async function adminLoadUsers() {
   }));
 
   profiles.forEach(p => {
-    // Streak
-    const userDates = [...new Set(
+    // Streak — use Set for O(1) lookups instead of Array.includes
+    const userDateSet = new Set(
       streaks.filter(s => s.user_id === p.user_id).map(s => s.date)
-    )].sort().reverse();
+    );
     let streak = 0, cur = new Date();
     for (let i = 0; i < 365; i++) {
       const d = cur.toISOString().split('T')[0];
-      if (userDates.includes(d)) { streak++; cur.setDate(cur.getDate() - 1); } else break;
+      if (userDateSet.has(d)) { streak++; cur.setDate(cur.getDate() - 1); } else break;
     }
 
     // Tasks
-    const ut       = tasks.filter(t => t.user_id === p.user_id);
+    const ut = tasks.filter(t => t.user_id === p.user_id);
     const doneTasks = ut.filter(t => t.done).length;
 
     // CGPA
-    const up   = progress.filter(r => r.user_id === p.user_id);
+    const up = progress.filter(r => r.user_id === p.user_id);
     const cgpa = up.length ? (up.reduce((s, r) => s + r.marks, 0) / up.length).toFixed(2) : '—';
 
     // Last active
@@ -2362,10 +2408,10 @@ async function adminLoadUsers() {
 
     // Detail chips
     const chips = el('div', { className: 'aur-chips' });
-    if (p.reg)   chips.appendChild(el('span', { className: 'aur-chip', textContent: `🎫 ${p.reg}` }));
+    if (p.reg) chips.appendChild(el('span', { className: 'aur-chip', textContent: `🎫 ${p.reg}` }));
     if (p.phone) chips.appendChild(el('span', { className: 'aur-chip', textContent: `📞 ${p.phone}` }));
-    if (p.adm)   chips.appendChild(el('span', { className: 'aur-chip', textContent: `🏫 ${p.adm}` }));
-    if (p.act)   chips.appendChild(el('span', { className: 'aur-chip', textContent: `🏆 ${p.act}` }));
+    if (p.adm) chips.appendChild(el('span', { className: 'aur-chip', textContent: `🏫 ${p.adm}` }));
+    if (p.act) chips.appendChild(el('span', { className: 'aur-chip', textContent: `🏆 ${p.act}` }));
     if (chips.children.length) card.appendChild(chips);
 
     // Mini stats
