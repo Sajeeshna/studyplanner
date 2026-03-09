@@ -37,6 +37,8 @@ self.addEventListener('fetch', event => {
         event.respondWith(
             caches.match(event.request).then(cached => {
                 return cached || fetch(event.request).then(response => {
+                    // Only cache successful responses — never cache 404/500 errors
+                    if (!response.ok) return response;
                     const clone = response.clone();
                     caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
                     return response;
