@@ -402,8 +402,13 @@ async function logoutUser() {
  * Central auth-state listener — the ONLY mechanism that transitions
  * between the loading, auth, and app screens.
  */
-supa.auth.onAuthStateChange((_event, session) => {
+supa.auth.onAuthStateChange((event, session) => {
   AppState.disarmSafetyNet();
+
+  // Clear OAuth hash fragments from URL to prevent loop/stuck states
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
 
   if (session?.user) {
     currentUser = session.user;
