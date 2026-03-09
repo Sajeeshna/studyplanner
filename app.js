@@ -2030,9 +2030,23 @@ async function sendChatMessage() {
   _scrollChatToBottom();
 
   try {
-    // Get the current logged-in user's auth token to send with the request
-    const { data: sessionData } = await supa.auth.getSession();
-    const token = sessionData?.session?.access_token ?? CONFIG.SUPABASE_KEY;
+    // Refresh the session to ensure we have a valid, non-expired token
+    const { data: refreshData, error: refreshErr } = await supa.auth.refreshSession();
+    let token;
+
+    if (refreshErr || !refreshData?.session) {
+      // Fallback: try getSession (may still be valid)
+      const { data: sessionData } = await supa.auth.getSession();
+      token = sessionData?.session?.access_token;
+    } else {
+      token = refreshData.session.access_token;
+    }
+
+    if (!token) {
+      getEl('chat-typing')?.remove();
+      _addChatBubble('⚠️ Session expired. Please log out and log back in.', 'bot');
+      return;
+    }
 
     // Call our secure Supabase Edge Function — Gemini key never touches the browser
     const response = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/gemini-proxy`, {
