@@ -504,7 +504,7 @@ function initAdminApp() {
   if (_w) _w.style.display = 'none';
 
   Promise.allSettled([
-    adminLoadTimetable(), adminLoadPdfs(), adminLoadUsers(),
+    adminLoadPdfs(), adminLoadUsers(),
     adminLoadStudentReports(), adminLoadAttendancePanel(),
   ]);
 }
@@ -731,11 +731,38 @@ function _renderStudyTime(rows) {
 
 
 /* ─────────────────────────────────────────────────────────────
-   SECTION 15 — EXAM TIMETABLE (read-only for students)
+   SECTION 15 — EXAM TIMETABLE (user-managed)
    ───────────────────────────────────────────────────────────── */
 
+async function addExam() {
+  if (!currentUser) return;
+  const day = getEl('exam-day')?.value.trim() ?? '';
+  const time = getEl('exam-time')?.value ?? '';
+  const subject = getEl('exam-subject')?.value.trim() ?? '';
+  const date = getEl('exam-date')?.value ?? '';
+
+  if (!day || !time || !subject) {
+    Toast.show('Please fill in all exam fields.', 'warning');
+    return;
+  }
+
+  const { error } = await supa.from('admin_timetable').insert({ day, time, subject, date, user_id: currentUser.id });
+  if (error) { Toast.show(`Error: ${error.message}`, 'error'); return; }
+
+  ['exam-day', 'exam-time', 'exam-subject', 'exam-date'].forEach(id => {
+    const e = getEl(id); if (e) e.value = '';
+  });
+
+  Toast.show('Exam added! 📅');
+  loadExams();
+}
+
 async function loadExams() {
-  const { data, error } = await supa.from('admin_timetable').select('*').order('created_at');
+  if (!currentUser) return;
+  const { data, error } = await supa.from('admin_timetable')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at');
   const tbody = getEl('exam-table-body');
   if (!tbody) return;
   tbody.innerHTML = '';
@@ -743,7 +770,7 @@ async function loadExams() {
   if (error || !data?.length) {
     tbody.appendChild(el('tr', {}, [
       el('td', {
-        colSpan: '4',
+        colSpan: '5',
         textContent: 'No exams scheduled yet.',
         style: { textAlign: 'center', color: 'var(--text-muted)', padding: '20px' },
       }),
@@ -756,8 +783,21 @@ async function loadExams() {
     el('td', { textContent: row.time }),
     el('td', { textContent: row.subject }),
     el('td', { textContent: row.date ?? '—' }),
+    el('td', {}, [
+      el('button', {
+        className: 'btn-delete',
+        textContent: 'Delete',
+        'aria-label': `Delete ${row.subject} exam`,
+        onClick: async () => {
+          await supa.from('admin_timetable').delete().eq('id', row.id);
+          Toast.show('Exam removed.', 'warning');
+          loadExams();
+        },
+      }),
+    ]),
   ])));
 }
+
 
 
 /* ─────────────────────────────────────────────────────────────
@@ -2120,57 +2160,7 @@ function _scrollChatToBottom() {
 }
 
 
-/* ─────────────────────────────────────────────────────────────
-   SECTION 28 — ADMIN: EXAM TIMETABLE
-   ───────────────────────────────────────────────────────────── */
 
-async function adminAddExam() {
-  const day = getEl('admin-exam-day')?.value.trim() ?? '';
-  const time = getEl('admin-exam-time')?.value ?? '';
-  const subject = getEl('admin-exam-subject')?.value.trim() ?? '';
-  const date = getEl('admin-exam-date')?.value ?? '';
-
-  if (!day || !time || !subject) {
-    Toast.show('Please fill in all exam fields.', 'warning');
-    return;
-  }
-
-  const { error } = await supa.from('admin_timetable').insert({ day, time, subject, date });
-  if (error) { Toast.show(`Error: ${error.message}`, 'error'); return; }
-
-  ['admin-exam-day', 'admin-exam-time', 'admin-exam-subject', 'admin-exam-date'].forEach(id => {
-    const e = getEl(id); if (e) e.value = '';
-  });
-
-  Toast.show('Exam added! 📅');
-  adminLoadTimetable();
-}
-
-async function adminLoadTimetable() {
-  const { data } = await supa.from('admin_timetable').select('*').order('created_at');
-  const tbody = getEl('admin-timetable-body');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  (data ?? []).forEach(d => tbody.appendChild(el('tr', {}, [
-    el('td', { textContent: d.day }),
-    el('td', { textContent: d.time }),
-    el('td', { textContent: d.subject }),
-    el('td', { textContent: d.date ?? '—' }),
-    el('td', {}, [
-      el('button', {
-        className: 'btn-delete',
-        textContent: 'Delete',
-        'aria-label': `Delete ${d.subject} exam`,
-        onClick: async () => {
-          await supa.from('admin_timetable').delete().eq('id', d.id);
-          Toast.show('Exam removed.', 'warning');
-          adminLoadTimetable();
-        },
-      }),
-    ]),
-  ])));
-}
 
 
 /* ─────────────────────────────────────────────────────────────
