@@ -223,11 +223,7 @@
           onkeydown="if(event.key==='Enter') adminNavigateTo('admin')">
           <span class="si-icon" aria-hidden="true">🏠</span> Dashboard
         </div>
-        <div class="admin-sidebar-item" data-section="admin-timetable"
-          onclick="adminNavigateTo('admin-timetable')" role="link" tabindex="0"
-          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-timetable')">
-          <span class="si-icon" aria-hidden="true">📅</span> Exam Timetable
-        </div>
+
         <div class="admin-sidebar-item" data-section="admin-pdfs"
           onclick="adminNavigateTo('admin-pdfs')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') adminNavigateTo('admin-pdfs')">
@@ -318,13 +314,17 @@
         <section class="content-section" id="section-timetable" aria-label="Exam Timetable">
           <div class="section-header">
             <div class="sh-icon" aria-hidden="true">📅</div>
-            <h2>Exam Timetable<small>View your exam schedule</small></h2>
+            <h2>Exam Timetable<small>Manage your exam schedule</small></h2>
           </div>
           <div class="card-panel">
-            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">
-              📋 Timetable is managed by admin. Check back for updates!
-            </p>
-            <div style="overflow-x:auto;">
+            <div class="inline-form" role="form" aria-label="Add exam entry">
+              <input type="text" id="exam-day"     placeholder="Day (e.g., Monday)" aria-label="Day">
+              <input type="time" id="exam-time"    aria-label="Time">
+              <input type="text" id="exam-subject" placeholder="Subject Name"        aria-label="Subject">
+              <input type="date" id="exam-date"    aria-label="Date">
+              <button class="btn-action" onclick="addExam()" type="button">Add Exam</button>
+            </div>
+            <div style="overflow-x:auto;margin-top:16px;">
               <table aria-label="Exam schedule">
                 <thead>
                   <tr>
@@ -332,6 +332,7 @@
                     <th scope="col">Time</th>
                     <th scope="col">Subject</th>
                     <th scope="col">Date</th>
+                    <th scope="col">Action</th>
                   </tr>
                 </thead>
                 <tbody id="exam-table-body"></tbody>
@@ -604,12 +605,7 @@
             </div>
           </div>
           <div class="dashboard-grid" style="margin-top:20px;">
-            <div class="stat-card" onclick="adminNavigateTo('admin-timetable')"
-              style="cursor:pointer;" role="button" tabindex="0" aria-label="Manage exam timetable"
-              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-timetable')">
-              <div class="sc-icon blue" aria-hidden="true">📅</div>
-              <div class="sc-info"><h3>Timetable</h3><p>Manage exam schedule</p></div>
-            </div>
+
             <div class="stat-card" onclick="adminNavigateTo('admin-pdfs')"
               style="cursor:pointer;" role="button" tabindex="0" aria-label="Manage PDFs"
               onkeydown="if(event.key==='Enter') adminNavigateTo('admin-pdfs')">
@@ -637,36 +633,7 @@
           </div>
         </section>
 
-        <!-- ═══ ADMIN TIMETABLE ═══ -->
-        <section class="content-section" id="section-admin-timetable" aria-label="Admin Timetable">
-          <div class="section-header">
-            <div class="sh-icon" aria-hidden="true">📅</div>
-            <h2>Exam Timetable<small>Add &amp; manage — visible to all students</small></h2>
-          </div>
-          <div class="card-panel">
-            <div class="inline-form" role="form" aria-label="Add exam entry">
-              <input type="text" id="admin-exam-day"     placeholder="Day (e.g., Monday)" aria-label="Day">
-              <input type="time" id="admin-exam-time"    aria-label="Time">
-              <input type="text" id="admin-exam-subject" placeholder="Subject Name"        aria-label="Subject">
-              <input type="date" id="admin-exam-date"    aria-label="Date">
-              <button class="btn-action" onclick="adminAddExam()" type="button">Add Exam</button>
-            </div>
-            <div style="overflow-x:auto;margin-top:16px;">
-              <table aria-label="Admin exam schedule">
-                <thead>
-                  <tr>
-                    <th scope="col">Day</th>
-                    <th scope="col">Time</th>
-                    <th scope="col">Subject</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-timetable-body"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+
 
         <!-- ═══ ADMIN PDFs ═══ -->
         <section class="content-section" id="section-admin-pdfs" aria-label="Admin PDF Management">
