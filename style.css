@@ -3154,6 +3154,150 @@ tr:hover td {
   letter-spacing: .04em;
 }
 
+/* ── Study Request cards ─────────────────────────────────── */
+.sr-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  position: relative;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sr-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.sr-card-pending {
+  border-left: 4px solid #f9a825;
+}
+
+.sr-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.sr-card-header strong {
+  font-size: 1rem;
+  color: var(--text-dark);
+}
+
+.sr-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Status badges */
+.sr-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.sr-pending {
+  background: rgba(249, 168, 37, 0.15);
+  color: #f57f17;
+  border: 1px solid rgba(249, 168, 37, 0.30);
+}
+
+.sr-responded {
+  background: rgba(46, 125, 50, 0.12);
+  color: #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.30);
+}
+
+/* Difficulty badge */
+.sr-diff-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--bg-gray);
+  border: 1px solid var(--glass-border);
+}
+
+/* Timetable response */
+.sr-timetable-response {
+  margin-top: 12px;
+  background: rgba(0, 105, 92, 0.06);
+  border: 1px solid rgba(0, 105, 92, 0.18);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  animation: srFadeIn 0.35s ease;
+}
+
+.sr-tt-label {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--primary-main);
+  margin-bottom: 8px;
+}
+
+.sr-tt-content {
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--text-dark);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  padding: 10px;
+  background: var(--bg-gray);
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--glass-border);
+  line-height: 1.6;
+}
+
+/* Admin reply section */
+.sr-admin-reply {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--glass-border);
+}
+
+.sr-admin-card {
+  border-left: none;
+}
+
+@keyframes srFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .sr-pending {
+  background: rgba(249, 168, 37, 0.10);
+  color: #fdd835;
+}
+
+[data-theme="dark"] .sr-responded {
+  background: rgba(46, 125, 50, 0.10);
+  color: #66bb6a;
+}
+
+[data-theme="dark"] .sr-timetable-response {
+  background: rgba(0, 105, 92, 0.10);
+  border-color: rgba(0, 105, 92, 0.25);
+}
+
 /* ── Supabase schema helper (SQL comment block) ───────────── */
 /* attendance_records table required:
    CREATE TABLE attendance_records (
@@ -3176,3 +3320,36 @@ tr:hover td {
      USING (auth.email() = 'msajeeshna@gmail.com')
      WITH CHECK (auth.email() = 'msajeeshna@gmail.com');
 */
+
+/* ─── PHASE 8, 9, 10: UI & A11y Polish ────────────── */
+@media (max-width: 768px) {
+
+  button,
+  .btn-action,
+  .btn-login,
+  select,
+  input,
+  .sidebar-item {
+    min-height: 44px !important;
+    min-width: 44px;
+  }
+
+  body {
+    font-size: 16px;
+    /* Prevent auto-zoom on iOS */
+  }
+}
+
+a:hover,
+button:hover {
+  filter: brightness(1.1);
+  transition: filter var(--transition-fast);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--primary-light) !important;
+  outline-offset: 2px;
+}
