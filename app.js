@@ -479,6 +479,7 @@ function initApp() {
     loadAdminNotes(), loadExams(), loadReminders(), loadNotes(),
     loadUserSemNotes(), loadProgress(), loadProfile(), loadTasks(),
     loadFlashcards(), loadAttendance(), loadStudyStreak(), loadStudyTime(),
+    loadStudyRequests(),
   ]).then(() => updateDashboard());
 
   navigateTo('dashboard');
@@ -506,6 +507,7 @@ function initAdminApp() {
   Promise.allSettled([
     adminLoadPdfs(), adminLoadUsers(),
     adminLoadStudentReports(), adminLoadAttendancePanel(),
+    adminLoadStudyRequests(),
   ]);
 }
 
@@ -2016,6 +2018,264 @@ function _downloadCSV(csv, filename) {
 
 
 /* ─────────────────────────────────────────────────────────────
+   SECTION 25B — STUDY REQUESTS
+   Students submit requests (subject, exam date, difficulty).
+   Admin reviews and responds with a study timetable.
+   Table: study_requests (id, user_id, subject, exam_date, difficulty,
+          status, admin_timetable, created_at)
+   ───────────────────────────────────────────────────────────── */
+
+/** STUDENT: Generate a study timetable automatically */
+async function submitStudyRequest() {
+  if (!currentUser) return;
+  const subject = getEl('sr-subject')?.value.trim() ?? '';
+  const examDate = getEl('sr-exam-date')?.value ?? '';
+  const difficulty = getEl('sr-difficulty')?.value ?? 'medium';
+
+  if (!subject || !examDate) {
+    Toast.show('Please enter the subject and exam date.', 'warning');
+    return;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const exam = new Date(examDate);
+  const diffTime = exam - today;
+  const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  const { error } = await supa.from('study_requests').insert({
+    user_id: currentUser.id,
+    subject,
+    exam_date: examDate,
+    difficulty
+  });
+
+  if (error) { Toast.show(`Error: ${error.message}`, 'error'); return; }
+
+  ['sr-subject', 'sr-exam-date'].forEach(id => {
+    const e = getEl(id); if (e) e.value = '';
+  });
+
+  Toast.show('Request submitted! Admin will review.', 'success');
+  loadStudyRequests();
+}
+
+/** STUDENT: Load and render this student's study requests */
+async function loadStudyRequests() {
+  if (!currentUser) return;
+  const container = getEl('student-requests-container');
+  if (!container) return;
+
+  container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">Loading…</p>';
+
+  const { data, error } = await supa.from('study_requests')
+    .select('*, study_timetables(timetable_data)')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  container.innerHTML = '';
+
+  if (error || !data?.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;text-align:center;padding:20px;">No study requests yet. Submit one above!</p>';
+    return;
+  }
+
+  data.forEach(req => {
+    const isPending = req.status === 'pending';
+    const diffBadge = _difficultyBadge(req.difficulty);
+    const statusBadge = el('span', {
+      className: isPending ? 'sr-badge sr-pending' : 'sr-badge sr-responded',
+      textContent: isPending ? '⏳ Pending' : '✅ Approved',
+    });
+
+    const daysLeft = Math.ceil((new Date(req.exam_date) - new Date()) / 86_400_000);
+    const daysText = daysLeft > 0 ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`
+      : daysLeft === 0 ? 'Exam today!' : 'Exam passed';
+
+    const card = el('div', { className: 'sr-card' }, [
+      el('div', { className: 'sr-card-header' }, [
+        el('strong', { textContent: req.subject }),
+        statusBadge,
+      ]),
+      el('div', { className: 'sr-card-meta' }, [
+        el('span', { textContent: `📅 ${req.exam_date}` }),
+        el('span', { textContent: `(${daysText})`, style: { color: daysLeft <= 3 ? '#c62828' : 'var(--text-muted)' } }),
+        diffBadge,
+      ]),
+    ]);
+
+    // Show timetable response if approved
+    const timetableData = req.study_timetables?.[0]?.timetable_data;
+    const ttContent = typeof timetableData === 'string' ? timetableData : timetableData?.content;
+
+    if (!isPending && ttContent) {
+      card.appendChild(el('div', { className: 'sr-timetable-response' }, [
+        el('div', { className: 'sr-tt-label', textContent: '📋 Approved Timetable:' }),
+        el('pre', { className: 'sr-tt-content', textContent: ttContent }),
+      ]));
+    }
+
+    // Delete button
+    card.appendChild(el('button', {
+      className: 'btn-delete',
+      style: { position: 'absolute', top: '10px', right: '10px' },
+      textContent: '✕',
+      'aria-label': `Delete request for ${req.subject}`,
+      onClick: async () => {
+        await supa.from('study_requests').delete().eq('id', req.id);
+        Toast.show('Request deleted.', 'warning');
+        loadStudyRequests();
+      },
+    }));
+
+    container.appendChild(card);
+  });
+}
+
+/** ADMIN: Load all student study requests */
+async function adminLoadStudyRequests() {
+  const container = getEl('admin-requests-container');
+  if (!container) return;
+
+  container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">Loading requests…</p>';
+
+  const filter = getEl('admin-request-filter')?.value ?? 'all';
+
+  // Fetch requests and profiles in parallel
+  const [reqRes, profRes] = await Promise.all([
+    supa.from('study_requests').select('*, study_timetables(timetable_data)').order('created_at', { ascending: false }),
+    supa.from('profiles').select('user_id, name, reg'),
+  ]);
+
+  const requests = reqRes.data ?? [];
+  const profiles = profRes.data ?? [];
+  const profileMap = {};
+  profiles.forEach(p => { profileMap[p.user_id] = p; });
+
+  // Update pending count on admin dashboard
+  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const countEl = getEl('admin-request-count');
+  if (countEl) countEl.textContent = pendingCount > 0 ? `${pendingCount} pending` : '0';
+
+  // Filter
+  const filtered = filter === 'all' ? requests
+    : requests.filter(r => r.status === filter);
+
+  container.innerHTML = '';
+
+  if (!filtered.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;text-align:center;padding:20px;">No requests found.</p>';
+    return;
+  }
+
+  filtered.forEach(req => {
+    const profile = profileMap[req.user_id];
+    const studentName = profile?.name ?? 'Unknown Student';
+    const studentReg = profile?.reg ? ` (${profile.reg})` : '';
+    const isPending = req.status === 'pending';
+    const diffBadge = _difficultyBadge(req.difficulty);
+    const daysLeft = Math.ceil((new Date(req.exam_date) - new Date()) / 86_400_000);
+    const daysText = daysLeft > 0 ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`
+      : daysLeft === 0 ? 'Exam today!' : 'Exam passed';
+
+    const card = el('div', { className: `sr-card sr-admin-card ${isPending ? 'sr-card-pending' : ''}` }, [
+      el('div', { className: 'sr-card-header' }, [
+        el('div', {}, [
+          el('strong', { textContent: req.subject }),
+          el('span', {
+            style: { marginLeft: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' },
+            textContent: `by ${studentName}${studentReg}`,
+          }),
+        ]),
+        el('span', {
+          className: isPending ? 'sr-badge sr-pending' : 'sr-badge sr-responded',
+          textContent: isPending ? '⏳ Pending' : '✅ Approved',
+        }),
+      ]),
+      el('div', { className: 'sr-card-meta' }, [
+        el('span', { textContent: `📅 Exam: ${req.exam_date}` }),
+        el('span', { textContent: `(${daysText})`, style: { color: daysLeft <= 3 ? '#c62828' : 'var(--text-muted)' } }),
+        diffBadge,
+      ]),
+    ]);
+
+    if (isPending) {
+      // Show a textarea for admin to type the timetable response
+      const textareaId = `admin-tt-${req.id}`;
+      card.appendChild(el('div', { className: 'sr-admin-reply' }, [
+        el('label', { htmlFor: textareaId, textContent: '📋 Provide Study Timetable:', style: { fontWeight: '600', fontSize: '0.88rem' } }),
+        el('textarea', {
+          id: textareaId,
+          placeholder: 'e.g.\nDay 1: Revise Chapter 1-3 (2 hrs)\nDay 2: Practice problems Ch 4-5 (3 hrs)\nDay 3: Revision + mock test…',
+          rows: '5',
+          style: { width: '100%', marginTop: '8px', padding: '10px', borderRadius: '10px', border: '1.5px solid var(--border-input)', fontFamily: 'inherit', fontSize: '0.88rem', resize: 'vertical', background: 'var(--bg-gray)', color: 'var(--text-dark)' },
+        }),
+        el('button', {
+          className: 'btn-action',
+          style: { marginTop: '10px' },
+          textContent: '✅ Send Timetable',
+          type: 'button',
+          onClick: async () => {
+            const timetable = getEl(textareaId)?.value.trim() ?? '';
+            if (!timetable) {
+              Toast.show('Please write a study timetable before sending.', 'warning');
+              return;
+            }
+            await adminRespondToRequest(req, timetable);
+          },
+        }),
+      ]));
+    } else {
+      // Show the already-sent timetable
+      const timetableData = req.study_timetables?.[0]?.timetable_data;
+      const ttContent = typeof timetableData === 'string' ? timetableData : timetableData?.content;
+      if (ttContent) {
+        card.appendChild(el('div', { className: 'sr-timetable-response' }, [
+          el('div', { className: 'sr-tt-label', textContent: '📋 Timetable Sent:' }),
+          el('pre', { className: 'sr-tt-content', textContent: ttContent }),
+        ]));
+      }
+    }
+
+    container.appendChild(card);
+  });
+}
+
+/** ADMIN: Respond to a study request with a timetable */
+async function adminRespondToRequest(req, timetable) {
+  // First insert the timetable
+  const { error: ttError } = await supa.from('study_timetables').insert({
+    request_id: req.id,
+    user_id: req.user_id,
+    timetable_data: { content: timetable }
+  });
+
+  if (ttError) { Toast.show(`Error: ${ttError.message}`, 'error'); return; }
+
+  // Then update the request status
+  const { error: reqError } = await supa.from('study_requests')
+    .update({ status: 'approved' })
+    .eq('id', req.id);
+
+  if (reqError) { Toast.show(`Error: ${reqError.message}`, 'error'); return; }
+
+  Toast.show('✅ Timetable sent to student!', 'success');
+  adminLoadStudyRequests();
+}
+
+/** Helper: create a difficulty badge element */
+function _difficultyBadge(difficulty) {
+  const colors = { easy: '#2e7d32', medium: '#e65100', hard: '#c62828' };
+  const labels = { easy: '🟢 Easy', medium: '🟠 Medium', hard: '🔴 Hard' };
+  return el('span', {
+    className: 'sr-diff-badge',
+    textContent: labels[difficulty] ?? difficulty,
+    style: { color: colors[difficulty] ?? 'var(--text-muted)' },
+  });
+}
+
+
+/* ─────────────────────────────────────────────────────────────
    SECTION 26 — SETTINGS (theme only — API key is in CONFIG)
    ───────────────────────────────────────────────────────────── */
 
@@ -2445,6 +2705,193 @@ async function adminLoadUsers() {
 
     container.appendChild(card);
   });
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION 30.5 — STUDY REQUESTS
+   ───────────────────────────────────────────────────────────── */
+
+async function submitStudyRequestOld() {
+  if (!currentUser) return;
+  const subject = getEl('sr-subject')?.value.trim();
+  const examDate = getEl('sr-exam-date')?.value;
+  const difficulty = getEl('sr-difficulty')?.value;
+
+  if (!subject || !examDate) {
+    Toast.show('Please fill in both subject and exam date.', 'warning');
+    return;
+  }
+
+  const { error } = await supa.from('study_requests').insert({
+    user_id: currentUser.id,
+    subject,
+    exam_date: examDate,
+    difficulty,
+    status: 'pending'
+  });
+
+  if (error) {
+    Toast.show(`Failed to send request: ${error.message}`, 'error');
+    return;
+  }
+
+  Toast.show('Study request sent successfully!', 'success');
+  if (getEl('sr-subject')) getEl('sr-subject').value = '';
+  if (getEl('sr-exam-date')) getEl('sr-exam-date').value = '';
+  if (getEl('sr-difficulty')) getEl('sr-difficulty').value = 'easy';
+  loadStudyRequests();
+}
+
+async function loadStudyRequestsOld() {
+  if (!currentUser) return;
+
+  const container = getEl('student-requests-container');
+  if (!container) return;
+
+  const { data, error } = await supa.from('study_requests')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('[StudyRequest] loadStudyRequests error:', error);
+    return;
+  }
+
+  container.innerHTML = '';
+  if (!data || !data.length) {
+    container.textContent = 'You have not submitted any study requests.';
+    Object.assign(container.style, { color: 'var(--text-muted)', fontSize: '0.88rem' });
+    return;
+  }
+
+  data.forEach(req => {
+    const isEditing = req.status === 'pending';
+    const borderColor = req.status === 'pending' ? 'var(--warning-main)' : 'var(--success-main)';
+    const card = el('div', { className: 'task-item', style: { flexDirection: 'column', alignItems: 'flex-start', borderLeft: `4px solid ${borderColor}`, padding: '12px', marginBottom: '8px' } }, [
+      el('div', { style: { display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '8px' } }, [
+        el('strong', { textContent: `📚 ${req.subject}` }),
+        el('span', { className: req.status === 'pending' ? 'aur-badge-inactive' : 'aur-badge-active', textContent: req.status.toUpperCase() })
+      ]),
+      el('div', { style: { fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px' } }, [
+        el('span', { textContent: `📅 Exam: ${req.exam_date} | ⚡ Difficulty: ${req.difficulty.toUpperCase()}` })
+      ])
+    ]);
+
+    if (req.status === 'responded' && req.response_text) {
+      card.appendChild(el('div', { style: { marginTop: '8px', padding: '10px', background: 'var(--bg-gray)', borderRadius: '6px', width: '100%', fontSize: '0.88rem', border: '1px solid var(--glass-border)' } }, [
+        el('strong', { textContent: '👑 Admin Timetable: ' }),
+        el('div', { innerHTML: req.response_text.replace(/\n/g, '<br>') })
+      ]));
+    } else {
+      card.appendChild(el('div', { style: { marginTop: '8px', fontSize: '0.82rem', fontStyle: 'italic', color: 'var(--text-muted)' }, textContent: 'Waiting for admin to provide a timetable...' }));
+    }
+    container.appendChild(card);
+  });
+}
+
+async function adminLoadStudyRequests() {
+  const container = getEl('admin-requests-container');
+  const countBadge = getEl('admin-request-count');
+  if (!container) return;
+
+  const filter = getEl('admin-request-filter')?.value || 'all';
+
+  // Try to query with user metadata join if permissions allow
+  let query = supa.from('study_requests').select('*, users:user_id(email)').order('created_at', { ascending: false });
+  if (filter !== 'all') {
+    query = query.eq('status', filter);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('[Admin] adminLoadStudyRequests error with joined query, falling back:', error);
+    // fallback without trying to join auth.users if permissions block it
+    const fallbackQuery = supa.from('study_requests').select('*').order('created_at', { ascending: false });
+    const fallbackRes = filter !== 'all' ? await fallbackQuery.eq('status', filter) : await fallbackQuery;
+    if (fallbackRes.error) return;
+    return renderAdminRequests(container, countBadge, fallbackRes.data);
+  }
+
+  renderAdminRequests(container, countBadge, data);
+}
+
+function renderAdminRequests(container, countBadge, data) {
+  if (countBadge) countBadge.textContent = data.length.toString();
+
+  container.innerHTML = '';
+  if (!data || !data.length) {
+    container.textContent = 'No requests found matching the filter.';
+    Object.assign(container.style, { color: 'var(--text-muted)', fontSize: '0.88rem', padding: '10px' });
+    return;
+  }
+
+  data.forEach(req => {
+    let studentName = 'Student ID: ' + req.user_id.substring(0, 8) + '...';
+    if (req.users && req.users.email) {
+      studentName = 'Student: ' + req.users.email;
+    }
+
+    const card = el('div', { className: 'card-panel', style: { marginBottom: '15px', padding: '16px' } }, [
+      el('div', { style: { display: 'flex', justifyContent: 'space-between', marginBottom: '10px' } }, [
+        el('div', {}, [
+          el('h4', { style: { margin: '0 0 6px 0', color: 'var(--text-dark)' }, textContent: `📚 ${req.subject}` }),
+          el('div', { style: { fontSize: '0.85rem', color: 'var(--text-muted)' } }, [
+            el('span', { textContent: studentName }),
+            el('br'),
+            el('span', { textContent: `📅 Exam Date: ${req.exam_date} | ⚡ Difficulty: ${req.difficulty.toUpperCase()}` })
+          ])
+        ]),
+        el('span', { className: req.status === 'pending' ? 'aur-badge-inactive' : 'aur-badge-active', textContent: req.status.toUpperCase() })
+      ])
+    ]);
+
+    if (req.status === 'pending') {
+      const responseContainer = el('div', { style: { marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' } });
+      const textAreaId = `admin-response-${req.id}`;
+      responseContainer.appendChild(el('textarea', { id: textAreaId, placeholder: 'Write a suitable timetable or instructions here...', rows: '4', style: { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-input)', background: 'var(--bg-card)', fontSize: '0.9rem', resize: 'vertical' } }));
+      responseContainer.appendChild(el('button', { className: 'btn-action', textContent: 'Send Timetable', onClick: () => adminRespondToRequest(req.id, textAreaId), style: { alignSelf: 'flex-start' } }));
+      card.appendChild(responseContainer);
+    } else {
+      card.appendChild(el('div', { style: { padding: '12px', background: 'var(--bg-gray)', borderRadius: '6px', fontSize: '0.88rem', marginTop: '12px', border: '1px solid var(--glass-border)' } }, [
+        el('strong', { textContent: 'Your Response: ' }),
+        el('div', { innerHTML: (req.response_text || '').replace(/\n/g, '<br>'), style: { marginTop: '6px' } })
+      ]));
+    }
+
+    container.appendChild(card);
+  });
+}
+
+async function adminRespondToRequest(requestId, textareaId) {
+  const responseText = getEl(textareaId)?.value.trim();
+  if (!responseText) {
+    Toast.show('Please enter a response timetable.', 'warning');
+    return;
+  }
+
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+
+  const { error } = await supa.from('study_requests').update({
+    status: 'responded',
+    response_text: responseText
+  }).eq('id', requestId);
+
+  btn.disabled = false;
+  btn.textContent = originalText;
+
+  if (error) {
+    Toast.show(`Failed to send response: ${error.message}`, 'error');
+    return;
+  }
+
+  Toast.show('Timetable sent successfully!', 'success');
+  adminLoadStudyRequests();
 }
 
 
