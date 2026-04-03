@@ -7,13 +7,30 @@
   <title>StudyPlanner – Smart Study Companion</title>
 
   <!-- SEO & Social -->
-  <meta name="description" content="StudyPlanner — AI chatbot, exam timetable, flashcards, Pomodoro timer, attendance tracker & more.">
+  <meta name="description"
+    content="StudyPlanner — Your smart study companion with AI chatbot, exams, flashcards, Pomodoro timer, attendance & more.">
   <meta name="theme-color" content="#004d40">
+
+  <link rel="canonical" href="https://yourdomain.com/">
+
+  <!-- Open Graph -->
   <meta property="og:title" content="StudyPlanner – Smart Study Companion">
-  <meta property="og:description" content="AI chatbot, exam timetable, flashcards, Pomodoro timer, attendance tracker & more.">
+  <meta property="og:description"
+    content="AI chatbot, exam timetable, flashcards, Pomodoro timer, attendance tracker & more.">
   <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:url" content="https://yourdomain.com/">
+  <meta property="og:image" content="https://yourdomain.com/og-image.jpg">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="StudyPlanner – Smart Study Companion">
+  <meta name="twitter:description"
+    content="AI chatbot, exam timetable, flashcards, Pomodoro timer, attendance tracker & more.">
+  <meta name="twitter:image" content="https://yourdomain.com/twitter-image.jpg">
+
+  <!-- Security Headers (via Meta) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
   <!-- PWA -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -21,12 +38,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="StudyPlanner">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css">
@@ -68,10 +87,14 @@
       <!-- Google OAuth -->
       <button class="btn-google" onclick="loginWithGoogle()" type="button">
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
-          <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-          <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-          <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
-          <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+          <path fill="#4285F4"
+            d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" />
+          <path fill="#34A853"
+            d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" />
+          <path fill="#FBBC05"
+            d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" />
+          <path fill="#EA4335"
+            d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z" />
         </svg>
         Continue with Google
       </button>
@@ -79,35 +102,14 @@
       <div class="login-divider" role="separator"><span>or sign in with email</span></div>
 
       <!-- Name (sign-up only) -->
-      <input
-        type="text"
-        id="auth-name"
-        placeholder="Your Name"
-        autocomplete="given-name"
-        style="display:none"
-        aria-label="Your Name"
-      >
+      <input type="text" id="auth-name" placeholder="Your Name" autocomplete="given-name" style="display:none"
+        aria-label="Your Name">
 
-      <input
-        type="email"
-        id="auth-email"
-        placeholder="Email Address"
-        autocomplete="email"
-        required
-        aria-label="Email Address"
-        aria-required="true"
-      >
+      <input type="email" id="auth-email" placeholder="Email Address" autocomplete="email" required
+        aria-label="Email Address" aria-required="true">
 
-      <input
-        type="password"
-        id="auth-password"
-        placeholder="Password"
-        autocomplete="current-password"
-        required
-        aria-label="Password"
-        aria-required="true"
-        onkeydown="if(event.key==='Enter') handleAuth()"
-      >
+      <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" required
+        aria-label="Password" aria-required="true" onkeydown="if(event.key==='Enter') handleAuth()">
 
       <button class="btn-login" id="auth-btn" onclick="handleAuth()" type="button">Sign In</button>
 
@@ -130,8 +132,8 @@
     <!-- ── HEADER ─────────────────────────────────── -->
     <header role="banner">
       <div style="display:flex;align-items:center;gap:10px;">
-        <button class="hamburger" onclick="toggleMobileSidebar()"
-          aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
+        <button class="hamburger" onclick="toggleMobileSidebar()" aria-label="Toggle navigation menu"
+          aria-expanded="false">☰</button>
         <h1 aria-label="StudyPlanner">Study<span>Planner</span></h1>
       </div>
       <div class="header-right">
@@ -147,102 +149,93 @@
       <!-- ── STUDENT SIDEBAR ────────────────────────── -->
       <nav class="sidebar" id="sidebar" aria-label="Main navigation">
         <div class="sidebar-section-label">Main</div>
-        <div class="sidebar-item active" data-section="dashboard"
-          onclick="navigateTo('dashboard')" role="link" tabindex="0" aria-current="page"
-          onkeydown="if(event.key==='Enter') navigateTo('dashboard')">
+        <div class="sidebar-item active" data-section="dashboard" onclick="navigateTo('dashboard')" role="link"
+          tabindex="0" aria-current="page" onkeydown="if(event.key==='Enter') navigateTo('dashboard')">
           <span class="si-icon" aria-hidden="true">🏠</span> Dashboard
         </div>
 
         <div class="sidebar-section-label">Study Tools</div>
-        <div class="sidebar-item" data-section="timetable"
-          onclick="navigateTo('timetable')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="timetable" onclick="navigateTo('timetable')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('timetable')">
           <span class="si-icon" aria-hidden="true">📅</span> Exam Timetable
         </div>
-        <div class="sidebar-item" data-section="reminders"
-          onclick="navigateTo('reminders')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="reminders" onclick="navigateTo('reminders')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('reminders')">
           <span class="si-icon" aria-hidden="true">🔔</span> Reminders
         </div>
-        <div class="sidebar-item" data-section="notes"
-          onclick="navigateTo('notes')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="notes" onclick="navigateTo('notes')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('notes')">
           <span class="si-icon" aria-hidden="true">📝</span> Digital Notes
         </div>
-        <div class="sidebar-item" data-section="semnotes"
-          onclick="navigateTo('semnotes')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="semnotes" onclick="navigateTo('semnotes')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('semnotes')">
           <span class="si-icon" aria-hidden="true">📚</span> Semester Notes
         </div>
-        <div class="sidebar-item" data-section="pomodoro"
-          onclick="navigateTo('pomodoro')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="pomodoro" onclick="navigateTo('pomodoro')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('pomodoro')">
           <span class="si-icon" aria-hidden="true">⏱️</span> Pomodoro Timer
         </div>
-        <div class="sidebar-item" data-section="tasks"
-          onclick="navigateTo('tasks')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="tasks" onclick="navigateTo('tasks')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('tasks')">
           <span class="si-icon" aria-hidden="true">✅</span> Task Tracker
         </div>
-        <div class="sidebar-item" data-section="flashcards"
-          onclick="navigateTo('flashcards')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="flashcards" onclick="navigateTo('flashcards')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('flashcards')">
           <span class="si-icon" aria-hidden="true">🃏</span> Flashcards
         </div>
 
         <div class="sidebar-section-label">Tracking</div>
-        <div class="sidebar-item" data-section="progress"
-          onclick="navigateTo('progress')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="progress" onclick="navigateTo('progress')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('progress')">
           <span class="si-icon" aria-hidden="true">📊</span> CGPA &amp; Progress
         </div>
-        <div class="sidebar-item" data-section="attendance"
-          onclick="navigateTo('attendance')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="attendance" onclick="navigateTo('attendance')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('attendance')">
           <span class="si-icon" aria-hidden="true">📋</span> Attendance
         </div>
-        <div class="sidebar-item" data-section="profile"
-          onclick="navigateTo('profile')" role="link" tabindex="0"
+        <div class="sidebar-item" data-section="profile" onclick="navigateTo('profile')" role="link" tabindex="0"
           onkeydown="if(event.key==='Enter') navigateTo('profile')">
           <span class="si-icon" aria-hidden="true">👤</span> My Profile
         </div>
 
         <div class="sidebar-section-label">More</div>
+        <div class="sidebar-item" data-section="study-request" onclick="navigateTo('study-request')" role="link"
+          tabindex="0" onkeydown="if(event.key==='Enter') navigateTo('study-request')">
+          <span class="si-icon" aria-hidden="true">📩</span> Study Request
+        </div>
       </nav>
 
       <!-- Mobile sidebar backdrop -->
-      <div class="sidebar-overlay" id="sidebar-overlay"
-        onclick="toggleMobileSidebar()" aria-hidden="true"></div>
+      <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileSidebar()" aria-hidden="true"></div>
 
       <!-- ── ADMIN SIDEBAR ──────────────────────────── -->
       <nav class="sidebar" id="admin-sidebar" style="display:none;" aria-label="Admin navigation">
         <div class="admin-sidebar-badge">👑 Admin Panel</div>
         <div class="sidebar-section-label">Admin</div>
-        <div class="admin-sidebar-item active" data-section="admin"
-          onclick="adminNavigateTo('admin')" role="link" tabindex="0" aria-current="page"
-          onkeydown="if(event.key==='Enter') adminNavigateTo('admin')">
+        <div class="admin-sidebar-item active" data-section="admin" onclick="adminNavigateTo('admin')" role="link"
+          tabindex="0" aria-current="page" onkeydown="if(event.key==='Enter') adminNavigateTo('admin')">
           <span class="si-icon" aria-hidden="true">🏠</span> Dashboard
         </div>
 
-        <div class="admin-sidebar-item" data-section="admin-pdfs"
-          onclick="adminNavigateTo('admin-pdfs')" role="link" tabindex="0"
-          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-pdfs')">
+        <div class="admin-sidebar-item" data-section="admin-pdfs" onclick="adminNavigateTo('admin-pdfs')" role="link"
+          tabindex="0" onkeydown="if(event.key==='Enter') adminNavigateTo('admin-pdfs')">
           <span class="si-icon" aria-hidden="true">📄</span> Manage PDFs
         </div>
-        <div class="admin-sidebar-item" data-section="admin-users"
-          onclick="adminNavigateTo('admin-users')" role="link" tabindex="0"
-          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-users')">
+        <div class="admin-sidebar-item" data-section="admin-users" onclick="adminNavigateTo('admin-users')" role="link"
+          tabindex="0" onkeydown="if(event.key==='Enter') adminNavigateTo('admin-users')">
           <span class="si-icon" aria-hidden="true">👥</span> Users
         </div>
-        <div class="admin-sidebar-item" data-section="admin-attendance"
-          onclick="adminNavigateTo('admin-attendance')" role="link" tabindex="0"
-          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-attendance')">
+        <div class="admin-sidebar-item" data-section="admin-attendance" onclick="adminNavigateTo('admin-attendance')"
+          role="link" tabindex="0" onkeydown="if(event.key==='Enter') adminNavigateTo('admin-attendance')">
           <span class="si-icon" aria-hidden="true">📋</span> Attendance
         </div>
-        <div class="admin-sidebar-item" data-section="admin-reports"
-          onclick="adminNavigateTo('admin-reports')" role="link" tabindex="0"
-          onkeydown="if(event.key==='Enter') adminNavigateTo('admin-reports')">
+        <div class="admin-sidebar-item" data-section="admin-reports" onclick="adminNavigateTo('admin-reports')"
+          role="link" tabindex="0" onkeydown="if(event.key==='Enter') adminNavigateTo('admin-reports')">
           <span class="si-icon" aria-hidden="true">📊</span> Student Reports
+        </div>
+        <div class="admin-sidebar-item" data-section="admin-requests" onclick="adminNavigateTo('admin-requests')"
+          role="link" tabindex="0" onkeydown="if(event.key==='Enter') adminNavigateTo('admin-requests')">
+          <span class="si-icon" aria-hidden="true">📩</span> Study Requests
         </div>
       </nav>
 
@@ -318,10 +311,10 @@
           </div>
           <div class="card-panel">
             <div class="inline-form" role="form" aria-label="Add exam entry">
-              <input type="text" id="exam-day"     placeholder="Day (e.g., Monday)" aria-label="Day">
-              <input type="time" id="exam-time"    aria-label="Time">
-              <input type="text" id="exam-subject" placeholder="Subject Name"        aria-label="Subject">
-              <input type="date" id="exam-date"    aria-label="Date">
+              <input type="text" id="exam-day" placeholder="Day (e.g., Monday)" aria-label="Day">
+              <input type="time" id="exam-time" aria-label="Time">
+              <input type="text" id="exam-subject" placeholder="Subject Name" aria-label="Subject">
+              <input type="date" id="exam-date" aria-label="Date">
               <button class="btn-action" onclick="addExam()" type="button">Add Exam</button>
             </div>
             <div style="overflow-x:auto;margin-top:16px;">
@@ -371,14 +364,15 @@
           </div>
           <div class="card-panel">
             <div class="notes-search">
-              <input type="search" id="note-search-input" placeholder="🔍 Search notes…"
-                oninput="searchNotes()" aria-label="Search notes">
+              <input type="search" id="note-search-input" placeholder="🔍 Search notes…" oninput="searchNotes()"
+                aria-label="Search notes">
             </div>
             <div class="inline-form" role="form" aria-label="Add a note">
-              <input type="text" id="note-title"   placeholder="Note Title"                              aria-label="Note title">
-              <textarea          id="note-content" placeholder="Write your note here…" rows="3"         aria-label="Note content"></textarea>
-              <input type="url"  id="note-link"    placeholder="Paste related URL (optional)"           aria-label="Related link">
-              <input type="text" id="note-tags"    placeholder="Tags (comma-separated, e.g. math, exam)" aria-label="Tags">
+              <input type="text" id="note-title" placeholder="Note Title" aria-label="Note title">
+              <textarea id="note-content" placeholder="Write your note here…" rows="3"
+                aria-label="Note content"></textarea>
+              <input type="url" id="note-link" placeholder="Paste related URL (optional)" aria-label="Related link">
+              <input type="text" id="note-tags" placeholder="Tags (comma-separated, e.g. math, exam)" aria-label="Tags">
               <button class="btn-action" onclick="addNote()" type="button">Save Note</button>
             </div>
             <div id="notes-container" style="margin-top:12px;" aria-live="polite" aria-label="Notes"></div>
@@ -411,7 +405,8 @@
             <h4>✏️ Add Your Own Notes:</h4>
             <div class="inline-form" role="form" aria-label="Add personal semester note">
               <select id="subject-select" aria-label="Select subject"></select>
-              <textarea id="sem-note-content" placeholder="Write notes for this subject…" rows="2" aria-label="Note content"></textarea>
+              <textarea id="sem-note-content" placeholder="Write notes for this subject…" rows="2"
+                aria-label="Note content"></textarea>
               <button class="btn-action" onclick="addUserNote()" type="button">Save My Note</button>
             </div>
             <div id="user-sem-notes" style="margin-top:10px;" aria-live="polite"></div>
@@ -430,16 +425,16 @@
                 <svg viewBox="0 0 220 220">
                   <defs>
                     <linearGradient id="pomoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%"   style="stop-color:#00695c"/>
-                      <stop offset="100%" style="stop-color:#4db6ac"/>
+                      <stop offset="0%" style="stop-color:#00695c" />
+                      <stop offset="100%" style="stop-color:#4db6ac" />
                     </linearGradient>
                   </defs>
-                  <circle cx="110" cy="110" r="100" class="pomo-ring-bg"/>
-                  <circle cx="110" cy="110" r="100" class="pomo-ring-progress" id="pomo-ring"/>
+                  <circle cx="110" cy="110" r="100" class="pomo-ring-bg" />
+                  <circle cx="110" cy="110" r="100" class="pomo-ring-progress" id="pomo-ring" />
                 </svg>
                 <div class="pomo-ring-center">
                   <div class="pomodoro-label" id="pomo-label">STUDY TIME</div>
-                  <div class="pomodoro-time"  id="pomo-time">25:00</div>
+                  <div class="pomodoro-time" id="pomo-time">25:00</div>
                 </div>
               </div>
 
@@ -452,9 +447,12 @@
               </div>
 
               <div class="pomo-mode-btns" role="group" aria-label="Timer presets">
-                <button class="btn-action"        style="padding:8px 16px;font-size:0.82rem;" onclick="setPomoMode('study')"     type="button">25 min Study</button>
-                <button class="btn-action accent"  style="padding:8px 16px;font-size:0.82rem;" onclick="setPomoMode('break')"     type="button">5 min Break</button>
-                <button class="btn-action purple"  style="padding:8px 16px;font-size:0.82rem;" onclick="setPomoMode('longbreak')" type="button">15 min Long Break</button>
+                <button class="btn-action" style="padding:8px 16px;font-size:0.82rem;" onclick="setPomoMode('study')"
+                  type="button">25 min Study</button>
+                <button class="btn-action accent" style="padding:8px 16px;font-size:0.82rem;"
+                  onclick="setPomoMode('break')" type="button">5 min Break</button>
+                <button class="btn-action purple" style="padding:8px 16px;font-size:0.82rem;"
+                  onclick="setPomoMode('longbreak')" type="button">15 min Long Break</button>
               </div>
 
               <div class="pomo-subject-select">
@@ -481,8 +479,8 @@
               <div class="task-progress-text" id="task-progress-text">0 / 0 completed</div>
             </div>
             <div class="inline-form row">
-              <input type="text" id="task-input" placeholder="Add a study task…" style="flex:1;"
-                aria-label="New task" onkeydown="if(event.key==='Enter') addTask()">
+              <input type="text" id="task-input" placeholder="Add a study task…" style="flex:1;" aria-label="New task"
+                onkeydown="if(event.key==='Enter') addTask()">
               <button class="btn-action" onclick="addTask()" type="button">+ Add</button>
             </div>
             <div id="tasks-container" style="margin-top:10px;" aria-live="polite" aria-label="Task list"></div>
@@ -497,9 +495,9 @@
           </div>
           <div class="card-panel">
             <div class="inline-form" role="form" aria-label="Create flashcard">
-              <input type="text" id="fc-front"   placeholder="Front side (question)" aria-label="Question">
-              <input type="text" id="fc-back"    placeholder="Back side (answer)"   aria-label="Answer">
-              <input type="text" id="fc-subject" placeholder="Subject (optional)"   aria-label="Subject">
+              <input type="text" id="fc-front" placeholder="Front side (question)" aria-label="Question">
+              <input type="text" id="fc-back" placeholder="Back side (answer)" aria-label="Answer">
+              <input type="text" id="fc-subject" placeholder="Subject (optional)" aria-label="Subject">
               <button class="btn-action" onclick="addFlashcard()" type="button">Create Flashcard</button>
             </div>
             <p style="font-size:0.82rem;color:var(--text-muted);margin-top:8px;">💡 Click a card to flip it!</p>
@@ -515,8 +513,10 @@
           </div>
           <div class="card-panel">
             <div class="inline-form" role="form" aria-label="Add semester result">
-              <input type="number" id="sem-no"    placeholder="Semester No (e.g., 1)" min="1" max="12" aria-label="Semester number">
-              <input type="number" id="sem-marks" placeholder="SGPA / Marks %"        step="0.01" min="0" max="100" aria-label="SGPA or marks">
+              <input type="number" id="sem-no" placeholder="Semester No (e.g., 1)" min="1" max="12"
+                aria-label="Semester number">
+              <input type="number" id="sem-marks" placeholder="SGPA / Marks %" step="0.01" min="0" max="100"
+                aria-label="SGPA or marks">
               <button class="btn-action" onclick="addProgress()" type="button">Add Semester</button>
             </div>
             <div class="chart-container">
@@ -534,14 +534,16 @@
                 <tbody id="progress-body"></tbody>
               </table>
             </div>
-            <div style="margin-top:12px;text-align:center;font-weight:700;color:var(--primary-main);font-size:1.1rem;" aria-live="polite">
+            <div style="margin-top:12px;text-align:center;font-weight:700;color:var(--primary-main);font-size:1.1rem;"
+              aria-live="polite">
               Current CGPA: <span id="cgpa-display">0.00</span>
             </div>
           </div>
           <div class="card-panel">
             <h4>🎯 GPA Goal Tracker</h4>
             <div class="inline-form row">
-              <input type="number" id="gpa-goal-input" placeholder="Target GPA (e.g., 8.5)" step="0.01" style="flex:1;" aria-label="Target GPA">
+              <input type="number" id="gpa-goal-input" placeholder="Target GPA (e.g., 8.5)" step="0.01" style="flex:1;"
+                aria-label="Target GPA">
               <button class="btn-action" onclick="saveGpaGoal()" type="button">Set Goal</button>
             </div>
             <div id="gpa-goal-display" style="margin-top:12px;" aria-live="polite"></div>
@@ -560,8 +562,7 @@
             </p>
             <div class="att-subject-row">
               <label for="att-subject-filter" class="att-subject-label">Subject:</label>
-              <select id="att-subject-filter"
-                onchange="renderAttendanceCalendar(this.value)"
+              <select id="att-subject-filter" onchange="renderAttendanceCalendar(this.value)"
                 aria-label="Select subject to view attendance calendar">
                 <option value="">— Select Subject —</option>
               </select>
@@ -578,21 +579,46 @@
           </div>
           <div class="card-panel">
             <div class="inline-form" role="form" aria-label="Profile form">
-              <input type="text" id="p-name"  placeholder="Full Name"         aria-label="Full name">
-              <input type="text" id="p-reg"   placeholder="Register Number"   aria-label="Register number">
-              <input type="tel"  id="p-phone" placeholder="Phone Number"      aria-label="Phone number">
-              <input type="text" id="p-adm"   placeholder="Admission Number"  aria-label="Admission number">
-              <input type="text" id="p-act"   placeholder="Campus Activities" aria-label="Campus activities">
+              <input type="text" id="p-name" placeholder="Full Name" aria-label="Full name">
+              <input type="text" id="p-reg" placeholder="Register Number" aria-label="Register number">
+              <input type="tel" id="p-phone" placeholder="Phone Number" aria-label="Phone number">
+              <input type="text" id="p-adm" placeholder="Admission Number" aria-label="Admission number">
+              <input type="text" id="p-act" placeholder="Campus Activities" aria-label="Campus activities">
               <button class="btn-action" onclick="saveProfile()" type="button">Save Profile</button>
             </div>
             <div id="profile-display" style="margin-top:15px;display:none;" aria-live="polite">
               <h4 style="font-size:0.95rem;margin-bottom:8px;">Saved Profile:</h4>
-              <p><strong>Name:</strong>         <span id="dp-name"></span></p>
-              <p><strong>Reg No:</strong>        <span id="dp-reg"></span></p>
-              <p><strong>Phone:</strong>         <span id="dp-phone"></span></p>
-              <p><strong>Admission No:</strong>  <span id="dp-adm"></span></p>
-              <p><strong>Activities:</strong>    <span id="dp-act"></span></p>
+              <p><strong>Name:</strong> <span id="dp-name"></span></p>
+              <p><strong>Reg No:</strong> <span id="dp-reg"></span></p>
+              <p><strong>Phone:</strong> <span id="dp-phone"></span></p>
+              <p><strong>Admission No:</strong> <span id="dp-adm"></span></p>
+              <p><strong>Activities:</strong> <span id="dp-act"></span></p>
             </div>
+          </div>
+        </section>
+
+        <!-- ═══ STUDY GENERATOR (student) ═══ -->
+        <section class="content-section" id="section-study-request" aria-label="Study Generator">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">⚡</div>
+            <h2>Study Generator<small>Auto-generate a smart study timetable</small></h2>
+          </div>
+          <div class="card-panel">
+            <h4 style="margin-bottom:14px;">📝 Generate a Study Timetable</h4>
+            <div class="inline-form" role="form" aria-label="Generate study timetable">
+              <input type="text" id="sr-subject" placeholder="Subject (e.g. Mathematics)" aria-label="Subject">
+              <input type="date" id="sr-exam-date" aria-label="Exam Date">
+              <select id="sr-difficulty" aria-label="Difficulty Level">
+                <option value="easy">🟢 Easy</option>
+                <option value="medium">🟠 Medium</option>
+                <option value="hard">🔴 Hard</option>
+              </select>
+              <button class="btn-action" onclick="submitStudyRequest()" type="button">⚡ Generate Timetable</button>
+            </div>
+          </div>
+          <div class="card-panel">
+            <h4>📋 My Generated Timetables</h4>
+            <div id="student-requests-container" style="margin-top:12px;" aria-live="polite"></div>
           </div>
         </section>
 
@@ -606,29 +632,48 @@
           </div>
           <div class="dashboard-grid" style="margin-top:20px;">
 
-            <div class="stat-card" onclick="adminNavigateTo('admin-pdfs')"
-              style="cursor:pointer;" role="button" tabindex="0" aria-label="Manage PDFs"
-              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-pdfs')">
+            <div class="stat-card" onclick="adminNavigateTo('admin-pdfs')" style="cursor:pointer;" role="button"
+              tabindex="0" aria-label="Manage PDFs" onkeydown="if(event.key==='Enter') adminNavigateTo('admin-pdfs')">
               <div class="sc-icon green" aria-hidden="true">📄</div>
-              <div class="sc-info"><h3>PDFs</h3><p>Upload semester notes</p></div>
+              <div class="sc-info">
+                <h3>PDFs</h3>
+                <p>Upload semester notes</p>
+              </div>
             </div>
-            <div class="stat-card" onclick="adminNavigateTo('admin-users')"
-              style="cursor:pointer;" role="button" tabindex="0" aria-label="View users"
-              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-users')">
+            <div class="stat-card" onclick="adminNavigateTo('admin-users')" style="cursor:pointer;" role="button"
+              tabindex="0" aria-label="View users" onkeydown="if(event.key==='Enter') adminNavigateTo('admin-users')">
               <div class="sc-icon purple" aria-hidden="true">👥</div>
-              <div class="sc-info"><h3 id="admin-user-count">—</h3><p>Total Users</p></div>
+              <div class="sc-info">
+                <h3 id="admin-user-count">—</h3>
+                <p>Total Users</p>
+              </div>
             </div>
-            <div class="stat-card" onclick="adminNavigateTo('admin-attendance')"
-              style="cursor:pointer;" role="button" tabindex="0" aria-label="Manage attendance"
+            <div class="stat-card" onclick="adminNavigateTo('admin-attendance')" style="cursor:pointer;" role="button"
+              tabindex="0" aria-label="Manage attendance"
               onkeydown="if(event.key==='Enter') adminNavigateTo('admin-attendance')">
               <div class="sc-icon teal" aria-hidden="true">📋</div>
-              <div class="sc-info"><h3>Attendance</h3><p>Mark student attendance</p></div>
+              <div class="sc-info">
+                <h3>Attendance</h3>
+                <p>Mark student attendance</p>
+              </div>
             </div>
-            <div class="stat-card" onclick="adminNavigateTo('admin-reports')"
-              style="cursor:pointer;" role="button" tabindex="0" aria-label="View student reports"
+            <div class="stat-card" onclick="adminNavigateTo('admin-reports')" style="cursor:pointer;" role="button"
+              tabindex="0" aria-label="View student reports"
               onkeydown="if(event.key==='Enter') adminNavigateTo('admin-reports')">
               <div class="sc-icon orange" aria-hidden="true">📊</div>
-              <div class="sc-info"><h3>Reports</h3><p>Student performance</p></div>
+              <div class="sc-info">
+                <h3>Reports</h3>
+                <p>Student performance</p>
+              </div>
+            </div>
+            <div class="stat-card" onclick="adminNavigateTo('admin-requests')" style="cursor:pointer;" role="button"
+              tabindex="0" aria-label="View study requests"
+              onkeydown="if(event.key==='Enter') adminNavigateTo('admin-requests')">
+              <div class="sc-icon blue" aria-hidden="true">📩</div>
+              <div class="sc-info">
+                <h3 id="admin-request-count">—</h3>
+                <p>Study Requests</p>
+              </div>
             </div>
           </div>
         </section>
@@ -657,13 +702,12 @@
                 ondragleave="this.classList.remove('dragging')"
                 ondrop="event.preventDefault();this.classList.remove('dragging');adminHandlePdfUpload(event.dataTransfer.files[0])">
                 <input type="file" id="admin-pdf-file-input" accept=".pdf,application/pdf"
-                  onchange="adminHandlePdfUpload(this.files[0])"
-                  aria-label="Select PDF file (max 15 MB)">
+                  onchange="adminHandlePdfUpload(this.files[0])" aria-label="Select PDF file (max 15 MB)">
                 <div class="upload-icon" aria-hidden="true">📄</div>
                 <div class="upload-text">Drag &amp; drop PDF or <b>click to browse</b> (max 15 MB)</div>
               </div>
-              <div class="upload-progress" id="admin-upload-progress"
-                role="progressbar" aria-label="Upload progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div class="upload-progress" id="admin-upload-progress" role="progressbar" aria-label="Upload progress"
+                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                 <div class="upload-progress-bar" id="admin-upload-progress-bar"></div>
               </div>
             </div>
@@ -697,18 +741,14 @@
             <div class="admin-att-form">
               <div class="att-form-row">
                 <label for="admin-att-student">Student</label>
-                <select id="admin-att-student"
-                  onchange="adminLoadAttendanceRecords()"
-                  aria-label="Select student">
+                <select id="admin-att-student" onchange="adminLoadAttendanceRecords()" aria-label="Select student">
                   <option value="">— Select Student —</option>
                 </select>
               </div>
               <div class="att-form-row">
                 <label for="admin-att-subject">Subject</label>
-                <input type="text" id="admin-att-subject"
-                  placeholder="e.g. Mathematics"
-                  oninput="adminLoadAttendanceRecords()"
-                  aria-label="Subject name">
+                <input type="text" id="admin-att-subject" placeholder="e.g. Mathematics"
+                  oninput="adminLoadAttendanceRecords()" aria-label="Subject name">
               </div>
               <div class="att-form-row">
                 <label for="admin-att-date">Date</label>
@@ -766,18 +806,36 @@
 
           <!-- Per-student cards -->
           <div class="card-panel">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div
+              style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
               <h4 style="margin:0;">🎓 Individual Student Overview</h4>
-              <input
-                type="search"
-                id="report-search"
-                placeholder="🔍 Search by name or reg…"
+              <input type="search" id="report-search" placeholder="🔍 Search by name or reg…"
                 oninput="filterReportCards()"
                 style="padding:8px 12px;border:1.5px solid var(--border-input);border-radius:var(--radius-sm);background:var(--bg-gray);font-size:0.85rem;outline:none;font-family:inherit;color:var(--text-dark);width:220px;"
-                aria-label="Search students"
-              >
+                aria-label="Search students">
             </div>
             <div id="admin-reports-container" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <!-- ═══ ADMIN STUDY REQUESTS ═══ -->
+        <section class="content-section" id="section-admin-requests" aria-label="Study Requests">
+          <div class="section-header">
+            <div class="sh-icon" aria-hidden="true">📩</div>
+            <h2>Study Requests<small>Review student requests &amp; provide timetables</small></h2>
+          </div>
+          <div class="card-panel">
+            <div
+              style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+              <h4 style="margin:0;">📋 All Student Requests</h4>
+              <select id="admin-request-filter" onchange="adminLoadStudyRequests()" aria-label="Filter by status"
+                style="padding:8px 12px;border:1.5px solid var(--border-input);border-radius:var(--radius-sm);background:var(--bg-gray);font-size:0.85rem;outline:none;font-family:inherit;color:var(--text-dark);width:180px;">
+                <option value="all">All Requests</option>
+                <option value="pending">⏳ Pending Only</option>
+                <option value="responded">✅ Responded Only</option>
+              </select>
+            </div>
+            <div id="admin-requests-container" aria-live="polite"></div>
           </div>
         </section>
 
@@ -791,34 +849,33 @@
   <button class="chatbot-fab" id="chatbot-fab" onclick="toggleChatbot()" type="button"
     aria-label="Open AI study assistant" aria-haspopup="dialog">🤖</button>
 
-  <div class="chatbot-window" id="chatbot-window"
-    role="dialog" aria-label="StudyBuddy AI Chat" aria-modal="false">
+  <div class="chatbot-window" id="chatbot-window" role="dialog" aria-label="StudyBuddy AI Chat" aria-modal="false">
 
     <div class="chatbot-header">
       <div class="ch-avatar" aria-hidden="true">
         <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
           <!-- Antenna -->
-          <line x1="18" y1="4" x2="18" y2="9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-          <circle cx="18" cy="3" r="2" fill="#FFD700"/>
+          <line x1="18" y1="4" x2="18" y2="9" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
+          <circle cx="18" cy="3" r="2" fill="#FFD700" />
           <!-- Head -->
-          <rect x="7" y="9" width="22" height="16" rx="4" fill="#fff" fill-opacity="0.95"/>
+          <rect x="7" y="9" width="22" height="16" rx="4" fill="#fff" fill-opacity="0.95" />
           <!-- Eyes -->
-          <rect x="11" y="14" width="5" height="4" rx="1.5" fill="#6C63FF"/>
-          <rect x="20" y="14" width="5" height="4" rx="1.5" fill="#6C63FF"/>
+          <rect x="11" y="14" width="5" height="4" rx="1.5" fill="#6C63FF" />
+          <rect x="20" y="14" width="5" height="4" rx="1.5" fill="#6C63FF" />
           <!-- Eye glow -->
-          <circle cx="13" cy="15.5" r="1" fill="#fff" fill-opacity="0.7"/>
-          <circle cx="22" cy="15.5" r="1" fill="#fff" fill-opacity="0.7"/>
+          <circle cx="13" cy="15.5" r="1" fill="#fff" fill-opacity="0.7" />
+          <circle cx="22" cy="15.5" r="1" fill="#fff" fill-opacity="0.7" />
           <!-- Mouth -->
-          <rect x="12" y="20" width="12" height="2.5" rx="1.2" fill="#6C63FF" fill-opacity="0.5"/>
-          <rect x="13" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF"/>
-          <rect x="17" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF"/>
-          <rect x="21" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF"/>
+          <rect x="12" y="20" width="12" height="2.5" rx="1.2" fill="#6C63FF" fill-opacity="0.5" />
+          <rect x="13" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF" />
+          <rect x="17" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF" />
+          <rect x="21" y="20" width="2" height="2.5" rx="0.5" fill="#6C63FF" />
           <!-- Neck -->
-          <rect x="15" y="25" width="6" height="3" rx="1" fill="#fff" fill-opacity="0.7"/>
+          <rect x="15" y="25" width="6" height="3" rx="1" fill="#fff" fill-opacity="0.7" />
           <!-- Body -->
-          <rect x="9" y="28" width="18" height="6" rx="3" fill="#fff" fill-opacity="0.8"/>
+          <rect x="9" y="28" width="18" height="6" rx="3" fill="#fff" fill-opacity="0.8" />
           <!-- Chest light -->
-          <circle cx="18" cy="31" r="2" fill="#FFD700" fill-opacity="0.9"/>
+          <circle cx="18" cy="31" r="2" fill="#FFD700" fill-opacity="0.9" />
         </svg>
       </div>
       <div class="ch-info">
@@ -837,19 +894,16 @@
         </div>
       </div>
       <div class="chatbot-input">
-        <input
-          type="text"
-          id="chat-input"
-          placeholder="Ask me anything…"
-          aria-label="Message StudyBuddy"
-          onkeydown="if(event.key==='Enter') sendChatMessage()"
-        >
+        <input type="text" id="chat-input" placeholder="Ask me anything…" aria-label="Message StudyBuddy"
+          onkeydown="if(event.key==='Enter') sendChatMessage()">
         <button onclick="sendChatMessage()" type="button" aria-label="Send message">➤</button>
       </div>
     </div><!-- /#chatbot-chat-area -->
 
   </div><!-- /#chatbot-window -->
 
-  <script src="app.js"></script>
+  <!-- Deferred load scripts -->
+  <script src="app.js" defer></script>
 </body>
+
 </html>
